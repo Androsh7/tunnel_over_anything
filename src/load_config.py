@@ -3,11 +3,11 @@
 # Standard libraries
 import toml
 
-# Project libraries
-import src.default as df
-
 # Third-party libraries
 from attrs import define, field, validators
+
+# Project libraries
+import src.default as df
 
 
 @define
@@ -19,27 +19,30 @@ class ConnectorConfig:
     recv_path: str = field(validator=validators.instance_of(str))
     tx_path: str = field(validator=validators.instance_of(str))
 
+
 @define
 class ClientConfig(ConnectorConfig):
     @classmethod
     def from_dict(cls, data):
         return cls(
-            endpoint = data['endpoint'],
-            port = data['port'],
-            recv_path = df.INBOUND_RAW_PATH,
-            tx_path = df.OUTBOUND_PROCESSED_PATH
+            endpoint=data["endpoint"],
+            port=data["port"],
+            recv_path=df.INBOUND_RAW_PATH,
+            tx_path=df.OUTBOUND_PROCESSED_PATH,
         )
+
 
 @define
 class ServerConfig(ConnectorConfig):
     @classmethod
     def from_dict(cls, data):
         return cls(
-            endpoint = data['endpoint'],
-            port = data['port'],
-            recv_path = df.OUTBOUND_RAW_PATH,
-            tx_path = df.INBOUND_PROCESSED_PATH
+            endpoint=data["endpoint"],
+            port=data["port"],
+            recv_path=df.OUTBOUND_RAW_PATH,
+            tx_path=df.INBOUND_PROCESSED_PATH,
         )
+
 
 @define
 class PacketConfig:

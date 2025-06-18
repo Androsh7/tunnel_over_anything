@@ -18,5 +18,6 @@ DIRECTORY_PATHS = [
     OUTBOUND_PROCESSED_PATH,
 ]
 
+
 def get_datetime() -> str:
     return datetime.now().strftime(r"%Y%m%d%H%M%S%f")

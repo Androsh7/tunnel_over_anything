@@ -2,19 +2,19 @@
 
 # Standard libraries
 import asyncio
-import sys
 import os
+import sys
 from concurrent.futures import ProcessPoolExecutor
 
 # Third-party libraries
 from loguru import logger
-from src.client import ClientConnector
-from src.server import ServerConnector
-from src.load_config import Config
 
 # Project libraries
 import src.default as df
+from src.client import ClientConnector
+from src.load_config import Config
 from src.packet_converter import PacketConverter
+from src.server import ServerConnector
 
 if __name__ == "__main__":
     # Load config
@@ -22,10 +22,15 @@ if __name__ == "__main__":
 
     # Set the log format
     logger.remove()
-    logger.add(sys.stderr, format="<level>| {level: <5} | {message}</level>", colorize=True, level = config.log_level)
+    logger.add(
+        sys.stderr,
+        format="<level>| {level: <5} | {message}</level>",
+        colorize=True,
+        level=config.log_level,
+    )
 
     # Set the log level
-    #logger.configure(handlers=[{"sink": sys.stderr, "level": config.log_level}])
+    # logger.configure(handlers=[{"sink": sys.stderr, "level": config.log_level}])
 
     # Create sub-directories if they don't exist
     for directory in df.DIRECTORY_PATHS:
@@ -48,17 +53,17 @@ if __name__ == "__main__":
         loop.run_in_executor(executor, packet.disassemble_packets)
         loop.run_forever()
     except KeyboardInterrupt:
-        logger.debug("User initiated shutdown")    
+        logger.debug("User initiated shutdown")
     finally:
         logger.info("Shutting down Tunnel_Over_Anything")
         deleted_file_count = 0
         for directory in df.DIRECTORY_PATHS:
-            for file in os.listdir(path=f'{df.CLIENT_DIR}/{directory}'):
-                file_path = f'{df.CLIENT_DIR}/{directory}/{file}'
-                if not os.path.isfile(file_path) or not file_path.endswith('.bin'):
+            for file in os.listdir(path=f"{df.CLIENT_DIR}/{directory}"):
+                file_path = f"{df.CLIENT_DIR}/{directory}/{file}"
+                if not os.path.isfile(file_path) or not file_path.endswith(".bin"):
                     continue
-                logger.debug(f'Deleting file {file_path}')
+                logger.debug(f"Deleting file {file_path}")
                 os.remove(path=file_path)
                 deleted_file_count += 1
         if deleted_file_count > 0:
-            logger.info(f'Deleted {deleted_file_count} binary files')
+            logger.info(f"Deleted {deleted_file_count} binary files")

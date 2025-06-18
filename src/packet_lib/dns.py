@@ -1,8 +1,8 @@
 # Allows for the creation of DNS headers with encoded data
 
 # Standard libraries
-from typing import Literal, Optional
 from random import randint
+from typing import Literal, Optional
 
 # Third-party libraries
 from loguru import logger
@@ -101,7 +101,7 @@ def build_body(
 ):
     return b"".join(
         [
-            randint(1,65535).to_bytes(2, byteorder="big"),  # ID
+            randint(1, 65535).to_bytes(2, byteorder="big"),  # ID
             DNS_METHODS[method].to_bytes(2, byteorder="big"),  # Query/Response flag
             len(queries).to_bytes(2, byteorder="big"),  # Number of questions
             (len(answers)).to_bytes(2, byteorder="big"),  # Number of answers
@@ -128,9 +128,9 @@ def disassemble_dns_packet(packet_bytes: bytes) -> Optional[bytes]:
     try:
         dns_packet = DNS(packet_bytes)
     except DissectException as e:
-        logger.error(f'[disassembler] {e}')
+        logger.error(f"[disassembler] {e}")
         return None
-    data = b''
+    data = b""
     for query in dns_packet.queries:
         data_len = int(query.name[0])
         data += query.name[1 : data_len + 1]

@@ -2,7 +2,7 @@
 
 # Standard libraries
 import os
-from base64 import b64encode, b64decode
+from base64 import b64decode, b64encode
 from typing import Literal, Optional
 
 # Third-party libraries
@@ -57,7 +57,7 @@ class PacketConverter:
                 raise KeyError(f"[disassembler] Invalid packet type {self.packet_type}")
         if encoded_data is None:
             return encoded_data
-        
+
         return b64decode(encoded_data)
 
     def assemble_packets(self):
@@ -75,7 +75,9 @@ class PacketConverter:
             for packet in packet_list:
                 packet_source_path = f"{df.OUTBOUND_RAW_PATH}/{packet}"
                 packet_destination_path = f"{df.OUTBOUND_PROCESSED_PATH}/{packet}"
-                packet_bytes = self.read_packet(path=f'{df.CLIENT_DIR}/{packet_source_path}')
+                packet_bytes = self.read_packet(
+                    path=f"{df.CLIENT_DIR}/{packet_source_path}"
+                )
                 logger.debug(
                     f"[assembler] {packet_source_path} -> {packet_destination_path}"
                 )
@@ -83,7 +85,7 @@ class PacketConverter:
                 assembled_packet = self.assemble_dns(data=packet_bytes)
 
                 self.write_packet(
-                    path=f'{df.CLIENT_DIR}/{packet_destination_path}',
+                    path=f"{df.CLIENT_DIR}/{packet_destination_path}",
                     packet=assembled_packet,
                 )
                 self.delete_packet(packet_source_path)
@@ -103,17 +105,21 @@ class PacketConverter:
             for packet in packet_list:
                 packet_source_path = f"{df.INBOUND_RAW_PATH}/{packet}"
                 packet_destination_path = f"{df.INBOUND_PROCESSED_PATH}/{packet}"
-                packet_bytes = self.read_packet(path=f'{df.CLIENT_DIR}/{packet_source_path}')
+                packet_bytes = self.read_packet(
+                    path=f"{df.CLIENT_DIR}/{packet_source_path}"
+                )
                 logger.debug(
                     f"[disassembler] {packet_source_path} -> {packet_destination_path}"
                 )
 
-                if (disassembled_packet := self.disassemble_dns(data=packet_bytes)) is None:
+                if (
+                    disassembled_packet := self.disassemble_dns(data=packet_bytes)
+                ) is None:
                     self.delete_packet(packet_source_path)
                     continue
 
                 self.write_packet(
-                    path=f'{df.CLIENT_DIR}/{packet_destination_path}',
+                    path=f"{df.CLIENT_DIR}/{packet_destination_path}",
                     packet=disassembled_packet,
                 )
                 self.delete_packet(packet_source_path)
