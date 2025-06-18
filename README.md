@@ -1,6 +1,8 @@
 # Tunnel_Over_Anything
 
-This is a project to allow for the transmission of UDP packets over a discrete tunnel made up of ICMP, DNS, or other common packets to evade IDS/IPS, EDR, or Captive Portal. Tunnel Over Anything (TOE) is best used in conjunction with [OpenVPN](https://openvpn.net/) which is a free VPN client and server software. Details on configuring TOE to work with OpenVPN are detailed later on.
+Tunnel over anything is a program for transmitting any UDP data (OpenVPN traffic) over the internet disguised as DNS packets. The program is setup on both endpoints client and server, via a docker container and then any data transmitted into either of the endpoints is transported to the other
+
+![Diagram](docs/Tunnel_Over_Anything.drawio.svg)
 
 ## Running Tunnel_Over_Anything
 
