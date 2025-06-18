@@ -12,11 +12,6 @@ from attrs import define, field, validators
 
 @define
 class ConnectorConfig:
-    connector_type: str = field(
-        validator=validators.and_(
-            validators.instance_of(str), validators.in_(["bind", "connect"])
-        )
-    )
     endpoint: str = field(validator=validators.instance_of(str))
     port: int = field(
         converter=int, validator=validators.and_(validators.ge(1), validators.le(65535))
@@ -24,16 +19,27 @@ class ConnectorConfig:
     recv_path: str = field(validator=validators.instance_of(str))
     tx_path: str = field(validator=validators.instance_of(str))
 
+@define
+class ClientConfig(ConnectorConfig):
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data):
         return cls(
-            connector_type=data["connector_type"],
-            endpoint=data["endpoint"],
-            port=data["port"],
-            recv_path=data["recv_path"],
-            tx_path=data["tx_path"],
+            endpoint = data['endpoint'],
+            port = data['port'],
+            recv_path = df.OUTBOUND_RAW_PATH,
+            tx_path = df.INBOUND_PROCESSED_PATH
         )
 
+@define
+class ServerConfig(ConnectorConfig):
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+            endpoint = data['endpoint'],
+            port = data['port'],
+            recv_path = df.INBOUND_RAW_PATH,
+            tx_path = df.OUTBOUND_PROCESSED_PATH
+        )
 
 @define
 class PacketConfig:
@@ -50,8 +56,8 @@ class PacketConfig:
 
 @define
 class Config:
-    client: ConnectorConfig = field(validator=validators.instance_of(ConnectorConfig))
-    server: ConnectorConfig = field(validator=validators.instance_of(ConnectorConfig))
+    client: ClientConfig = field(validator=validators.instance_of(ClientConfig))
+    server: ServerConfig = field(validator=validators.instance_of(ServerConfig))
     packet: PacketConfig = field(validator=validators.instance_of(PacketConfig))
     log_level: str = field(
         validator=validators.and_(
@@ -67,8 +73,8 @@ class Config:
             config_dict = toml.load(file)
 
         return cls(
-            client=ConnectorConfig.from_dict(config_dict["client"]),
-            server=ConnectorConfig.from_dict(config_dict["server"]),
+            client=ClientConfig.from_dict(config_dict["client"]),
+            server=ServerConfig.from_dict(config_dict["server"]),
             packet=PacketConfig.from_dict(config_dict["packet"]),
             log_level=config_dict["log_level"].upper(),
         )
