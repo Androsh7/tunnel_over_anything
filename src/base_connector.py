@@ -49,7 +49,6 @@ class BaseConnector:
                         logger.info(f'server transmit endpoint is changing from {self.tx_address[0]}:{self.tx_address[1]} to {addr[0]}:{addr[1]}')
                     else:
                         logger.info(f'initial server transmit endpoint is set to {addr[0]}:{addr[1]}')
-                print(type(addr))
                 self.tx_address = addr
             date_string = df.get_datetime()
             logger.trace(
