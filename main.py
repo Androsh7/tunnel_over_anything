@@ -8,7 +8,8 @@ from concurrent.futures import ProcessPoolExecutor
 
 # Third-party libraries
 from loguru import logger
-from src.base_connector import BaseConnector
+from src.client import ClientConnector
+from src.server import ServerConnector
 from src.load_config import Config
 
 # Project libraries
@@ -27,24 +28,25 @@ if __name__ == "__main__":
         os.makedirs(name=f"{df.CLIENT_DIR}/{directory}/", exist_ok=True)
 
     # Configure sub-processes
-    client = BaseConnector(config=config.client)
-    server = BaseConnector(config=config.server)
+    client = ClientConnector(config=config.client)
+    server = ServerConnector(config=config.server)
     packet = PacketConverter(config=config.packet)
 
     # Start process workers
     try:
         executor = ProcessPoolExecutor(max_workers=6)
         loop = asyncio.new_event_loop()
-        loop.run_in_executor(executor, client.transmit)
-        loop.run_in_executor(executor, client.listen)
-        loop.run_in_executor(executor, server.transmit)
-        loop.run_in_executor(executor, server.listen)
+        loop.run_in_executor(executor, client.transmit_service)
+        loop.run_in_executor(executor, client.listener_service)
+        loop.run_in_executor(executor, server.transmit_service)
+        loop.run_in_executor(executor, server.listener_service)
         loop.run_in_executor(executor, packet.assemble_packets)
         loop.run_in_executor(executor, packet.disassemble_packets)
         loop.run_forever()
     except KeyboardInterrupt:
-        logger.info("Shutting down Tunnel_Over_Anything")
+        logger.debug("User initiated shutdown")    
     finally:
+        logger.info("Shutting down Tunnel_Over_Anything")
         deleted_file_count = 0
         for directory in df.DIRECTORY_PATHS:
             for file in os.listdir(path=f'{df.CLIENT_DIR}/{directory}'):
