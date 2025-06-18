@@ -1,7 +1,7 @@
 # Allows for the creation of DNS headers with encoded data
 
 # Standard libraries
-from typing import Literal
+from typing import Literal, Optional
 from random import randint
 
 # Third-party libraries
@@ -124,12 +124,12 @@ def assemble_dns_packet(data: bytes) -> bytes:
     return build_body(method="QUERY", queries=queries)
 
 
-def disassemble_dns_packet(packet_bytes: bytes) -> bytes:
+def disassemble_dns_packet(packet_bytes: bytes) -> Optional[bytes]:
     try:
         dns_packet = DNS(packet_bytes)
     except DissectException as e:
-        logger.error(e)
-        return b''
+        logger.error(f'[+] {e}')
+        return None
     data = b''
     for query in dns_packet.queries:
         data_len = int(query.name[0])
