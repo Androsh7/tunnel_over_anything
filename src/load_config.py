@@ -26,8 +26,8 @@ class ClientConfig(ConnectorConfig):
         return cls(
             endpoint = data['endpoint'],
             port = data['port'],
-            recv_path = df.OUTBOUND_RAW_PATH,
-            tx_path = df.INBOUND_PROCESSED_PATH
+            recv_path = df.INBOUND_RAW_PATH,
+            tx_path = df.OUTBOUND_PROCESSED_PATH
         )
 
 @define
@@ -37,8 +37,8 @@ class ServerConfig(ConnectorConfig):
         return cls(
             endpoint = data['endpoint'],
             port = data['port'],
-            recv_path = df.INBOUND_RAW_PATH,
-            tx_path = df.OUTBOUND_PROCESSED_PATH
+            recv_path = df.OUTBOUND_RAW_PATH,
+            tx_path = df.INBOUND_PROCESSED_PATH
         )
 
 @define

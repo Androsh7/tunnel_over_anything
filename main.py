@@ -20,8 +20,12 @@ if __name__ == "__main__":
     # Load config
     config = Config.load_config()
 
-    # Set log level
-    logger.configure(handlers=[{"sink": sys.stderr, "level": config.log_level}])
+    # Set the log format
+    logger.remove()
+    logger.add(sys.stderr, format="<level>| {level: <5} | {message}</level>", colorize=True, level = config.log_level)
+
+    # Set the log level
+    #logger.configure(handlers=[{"sink": sys.stderr, "level": config.log_level}])
 
     # Create sub-directories if they don't exist
     for directory in df.DIRECTORY_PATHS:

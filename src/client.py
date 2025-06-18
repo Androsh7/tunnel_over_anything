@@ -18,6 +18,7 @@ from src.load_config import ClientConfig
 class ClientConnector(BaseConnector):
 
     def __init__(self, config: ClientConfig):
+        self.connector_type = 'client'
         self.endpoint = config.endpoint
         self.port = config.port
         self.tx_path = config.tx_path
@@ -34,11 +35,11 @@ class ClientConnector(BaseConnector):
         try:
             return self.sock.send(data)
         except ConnectionRefusedError:
-            logger.error(f'Connection refused by {self.endpoint}:{self.port}')
+            logger.error(f'[{self.connector_type}] Connection refused by {self.endpoint}:{self.port}')
         return None
     
     def transmit_service(self):
-        logger.debug(f'[+] Started transmitter to {self.endpoint}:{self.port}')
+        logger.info(f'[{self.connector_type}] Started transmitter to {self.endpoint}:{self.port}')
         while True:
             # grab a list of all packets and sort them oldest to newest
             packet_list = os.listdir(path=f'{df.CLIENT_DIR}/{self.tx_path}/')
@@ -48,8 +49,8 @@ class ClientConnector(BaseConnector):
                 with open(file=packet_path, mode='rb') as file:
                     packet_bytes = file.read()
 
-                logger.trace(
-                    f'[+] Transmitting {len(packet_bytes)} bytes in packet {self.tx_path}/{packet} to {self.endpoint}:{self.port}'
+                logger.info(
+                    f'[{self.connector_type}] Transmitting {len(packet_bytes)} byte packet {self.tx_path}/{packet} to {self.endpoint}:{self.port}'
                 )
                 self.send(data=packet_bytes)
                 os.remove(packet_path)

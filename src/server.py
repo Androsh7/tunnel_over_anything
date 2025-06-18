@@ -18,6 +18,7 @@ from src.load_config import ServerConfig
 class ServerConnector(BaseConnector):
 
     def __init__(self, config: ServerConfig):
+        self.connector_type = 'server'
         self.endpoint = config.endpoint
         self.port = config.port
         self.tx_path = config.tx_path
@@ -38,7 +39,7 @@ class ServerConnector(BaseConnector):
         return None
 
     def transmit_service(self):
-        logger.debug(f'[+] Started transmitter to {self.endpoint}:{self.port}')
+        logger.info(f'[{self.connector_type}] Started transmitter from {self.endpoint}:{self.port}')
         # wait for a tx_endpoint and tx_port to be listed
         while self.tx_address is None:
             continue
@@ -51,8 +52,8 @@ class ServerConnector(BaseConnector):
                 with open(file=packet_path, mode='rb') as file:
                     packet_bytes = file.read()
 
-                logger.trace(
-                    f'[+] Transmitting {len(packet_bytes)} bytes in packet {self.tx_path}/{packet} to {self.tx_endpoint}:{self.tx_port}'
+                logger.info(
+                    f'[{self.connector_type}] Transmitting {len(packet_bytes)} byte packet {self.tx_path}/{packet} to {self.tx_address[0]}:{self.tx_address[1]}'
                 )
                 self.send_to(data=packet_bytes)
                 os.remove(packet_path)

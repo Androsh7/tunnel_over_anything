@@ -3,7 +3,7 @@
 # Standard libraries
 import os
 from base64 import b64encode, b64decode
-from typing import Literal
+from typing import Literal, Optional
 
 # Third-party libraries
 from loguru import logger
@@ -47,68 +47,73 @@ class PacketConverter:
             case "dns":
                 return assemble_dns_packet(encoded_data)
             case _:
-                raise KeyError(f"Invalid packet type {self.packet_type}")
+                raise KeyError(f"[assembler] Invalid packet type {self.packet_type}")
 
-    def disassemble_dns(self, data: bytes) -> bytes:
+    def disassemble_dns(self, data: bytes) -> Optional[bytes]:
         match self.packet_type:
             case "dns":
                 encoded_data = disassemble_dns_packet(packet_bytes=data)
             case _:
-                raise KeyError(f"Invalid packet type {self.packet_type}")
+                raise KeyError(f"[disassembler] Invalid packet type {self.packet_type}")
+        if encoded_data is None:
+            return encoded_data
         
         return b64decode(encoded_data)
 
     def assemble_packets(self):
-        logger.debug(
-            f"[+] Started packet assembler (outbound/raw_capture -> outbound/assembled_packets)"
+        logger.info(
+            f"[assembler] Started packet assembler ({df.OUTBOUND_RAW_PATH} -> {df.OUTBOUND_PROCESSED_PATH})"
         )
         while True:
             packet_list = self.grab_captures(dir="outbound")
             if len(packet_list) == 0:
                 continue
             logger.debug(
-                f'[+] Processing {len(packet_list)} packet{"s" if len(packet_list) > 1 else ""} in outbound/raw_capture'
+                f'[assembler] Processing {len(packet_list)} packet{"s" if len(packet_list) > 1 else ""} in {df.OUTBOUND_RAW_PATH} {packet_list}'
             )
 
             for packet in packet_list:
-                packet_path = f"{df.CLIENT_DIR}/outbound/raw_capture/{packet}"
-                packet_bytes = self.read_packet(path=packet_path)
-                logger.trace(
-                    f"[+] Assembling {len(packet_bytes)} bytes to packet outbound/assembled_packets/{packet}"
+                packet_source_path = f"{df.OUTBOUND_RAW_PATH}/{packet}"
+                packet_destination_path = f"{df.OUTBOUND_PROCESSED_PATH}/{packet}"
+                packet_bytes = self.read_packet(path=f'{df.CLIENT_DIR}/{packet_source_path}')
+                logger.debug(
+                    f"[assembler] {packet_source_path} -> {packet_destination_path}"
                 )
 
                 assembled_packet = self.assemble_dns(data=packet_bytes)
 
                 self.write_packet(
-                    path=f"{df.CLIENT_DIR}/outbound/assembled_packets/{packet}",
+                    path=f'{df.CLIENT_DIR}/{packet_destination_path}',
                     packet=assembled_packet,
                 )
-                self.delete_packet(packet_path)
+                self.delete_packet(packet_source_path)
 
     def disassemble_packets(self):
-        logger.debug(
-            f"[+] Started packet disassembler (inbound/raw_capture -> inbound/disassembled_packets)"
+        logger.info(
+            f"[disassembler] Started packet disassembler ({df.INBOUND_RAW_PATH} -> {df.INBOUND_PROCESSED_PATH})"
         )
         while True:
             packet_list = self.grab_captures(dir="inbound")
             if len(packet_list) == 0:
                 continue
             logger.debug(
-                f'[+] Processing {len(packet_list)} packet{"s" if len(packet_list) > 1 else ""} in inbound/raw_capture'
+                f'[disassembler] Processing {len(packet_list)} packet{"s" if len(packet_list) > 1 else ""} in {df.INBOUND_RAW_PATH} {packet_list}'
             )
 
             for packet in packet_list:
-                packet_path = f"{df.CLIENT_DIR}/inbound/raw_capture/{packet}"
-                packet_bytes = self.read_packet(path=packet_path)
-                logger.trace(
-                    f"[+] Disassembling {len(packet_bytes)} bytes to packet inbound/disassembled_packets/{packet}"
+                packet_source_path = f"{df.INBOUND_RAW_PATH}/{packet}"
+                packet_destination_path = f"{df.INBOUND_PROCESSED_PATH}/{packet}"
+                packet_bytes = self.read_packet(path=f'{df.CLIENT_DIR}/{packet_source_path}')
+                logger.debug(
+                    f"[disassembler] {packet_source_path} -> {packet_destination_path}"
                 )
 
                 if (disassembled_packet := self.disassemble_dns(data=packet_bytes)) is None:
+                    self.delete_packet(packet_source_path)
                     continue
 
                 self.write_packet(
-                    path=f"{df.CLIENT_DIR}/inbound/disassembled_packets/{packet}",
+                    path=f'{df.CLIENT_DIR}/{packet_destination_path}',
                     packet=disassembled_packet,
                 )
-                self.delete_packet(packet_path)
+                self.delete_packet(packet_source_path)

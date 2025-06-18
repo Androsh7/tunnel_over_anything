@@ -11,7 +11,7 @@ from loguru import logger
 from pypacker.layer567.dns import DNS
 from pypacker.pypacker import DissectException
 
-MAX_RECORD_LENGTH = 2
+MAX_RECORD_LENGTH = 60
 
 DNS_METHODS = {
     "QUERY": 0,
@@ -128,7 +128,7 @@ def disassemble_dns_packet(packet_bytes: bytes) -> Optional[bytes]:
     try:
         dns_packet = DNS(packet_bytes)
     except DissectException as e:
-        logger.error(f'[+] {e}')
+        logger.error(f'[disassembler] {e}')
         return None
     data = b''
     for query in dns_packet.queries:

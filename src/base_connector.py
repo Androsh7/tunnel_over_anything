@@ -2,7 +2,7 @@
 
 # Standard libraries
 import socket
-from typing import Optional
+from typing import Literal, Optional
 
 # Project libraries
 import src.default as df
@@ -14,6 +14,7 @@ from loguru import logger
 
 @define
 class BaseConnector:
+    connector_type: Literal['server', 'client'] = field(validator=validators.and_(validators.instance_of(str), validators.in_(('server', 'client'))))
     endpoint: str = field(validator=validators.instance_of(str))
     port: int = field(
         validator=validators.and_(
@@ -29,30 +30,28 @@ class BaseConnector:
         try:
             data, address = self.sock.recvfrom(df.MAX_RECV_BUFFER)
         except ConnectionRefusedError:
-            logger.error(f'Incoming connection refused {self.endpoint}:{self.port}')
+            logger.error(f'[{self.connector_type}] Connection refused (Errno 111)')
             return (None, None)
-        print(address)
         return data, address
 
     def listener_service(self):
-        logger.debug(f'[+] Started response listener for {self.endpoint}:{self.port}')
+        logger.info(f'[{self.connector_type}] Started response listener for {self.endpoint}:{self.port}')
         while True:
             packet_bytes, addr = self.receive()
             # ignore if the receive command failed
             if packet_bytes is None or addr is None:
-                logger.error(f'Unable to process empty packet from {addr[0]}:{addr[1]}')
                 continue
             else:
                 # print the updated server transmit endpoint
                 if self.tx_address != addr:
                     if self.tx_address is not None:
-                        logger.info(f'server transmit endpoint is changing from {self.tx_address[0]}:{self.tx_address[1]} to {addr[0]}:{addr[1]}')
+                        logger.info(f'[{self.connector_type}] transmit endpoint is changing from {self.tx_address[0]}:{self.tx_address[1]} to {addr[0]}:{addr[1]}')
                     else:
-                        logger.info(f'initial server transmit endpoint is set to {addr[0]}:{addr[1]}')
+                        logger.info(f'[{self.connector_type}] initial transmit endpoint is set to {addr[0]}:{addr[1]}')
                 self.tx_address = addr
             date_string = df.get_datetime()
-            logger.trace(
-                f'[+] Received {len(packet_bytes)} bytes from {addr[0]}:{addr[1]} writing packet to {self.recv_path}/{date_string}.bin'
+            logger.info(
+                f'[{self.connector_type}] Received {len(packet_bytes)} byte packet from {addr[0]}:{addr[1]} writing binary to {self.recv_path}/{date_string}.bin'
             )
             with open(
                 file=f'{df.CLIENT_DIR}/{self.recv_path}/{date_string}.bin', mode='wb'
