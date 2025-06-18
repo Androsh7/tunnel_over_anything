@@ -15,6 +15,7 @@ import src.default as df
 @define
 class BaseConnector:
     """A base class for the client and server connector"""
+
     connector_type: Literal["server", "client"] = field(
         validator=validators.and_(
             validators.instance_of(str), validators.in_(("server", "client"))

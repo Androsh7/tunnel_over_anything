@@ -11,3 +11,5 @@ build/
 outbound/
 inbound/
 docs/
+examples/
+config.toml

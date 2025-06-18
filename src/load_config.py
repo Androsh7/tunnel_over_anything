@@ -13,6 +13,7 @@ import src.default as df
 @define
 class ConnectorConfig:
     """Defines the ConnectorConfig base class"""
+
     endpoint: str = field(validator=validators.instance_of(str))
     port: int = field(
         converter=int, validator=validators.and_(validators.ge(1), validators.le(65535))
@@ -24,6 +25,7 @@ class ConnectorConfig:
 @define
 class ClientConfig(ConnectorConfig):
     """Defines the ClientConfig class for configuring ClientConnector objects"""
+
     @classmethod
     def from_dict(cls, data):
         """Creates a ClientConfig object from a dictionary
@@ -42,6 +44,7 @@ class ClientConfig(ConnectorConfig):
 @define
 class ServerConfig(ConnectorConfig):
     """Defines the ServerConfig class for configuring ServerConnector objects"""
+
     @classmethod
     def from_dict(cls, data):
         """Creates a ServerConfig object from a dictionary
@@ -60,6 +63,7 @@ class ServerConfig(ConnectorConfig):
 @define
 class PacketConfig:
     """Defines the PacketConfig class for configuring ServerConnector objects"""
+
     protocol: str = field(
         validator=validators.and_(
             validators.instance_of(str), validators.in_(df.PROTOCOLS)
@@ -79,6 +83,7 @@ class PacketConfig:
 @define
 class Config:
     """Defines the Config class for importing the config.toml"""
+
     client: ClientConfig = field(validator=validators.instance_of(ClientConfig))
     server: ServerConfig = field(validator=validators.instance_of(ServerConfig))
     packet: PacketConfig = field(validator=validators.instance_of(PacketConfig))

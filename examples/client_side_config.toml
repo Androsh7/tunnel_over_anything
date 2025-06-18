@@ -1,0 +1,15 @@
+title = "Config"
+
+# specify the logging level (TRACE, DEBUG, INFO, ERROR, CRITICAL)
+log_level = "INFO"
+
+[client]
+endpoint = "<REMOTE_HOST>"
+port = 53
+
+[server]
+endpoint = "127.0.0.1"
+port = 1194 # Default OpenVPN port
+
+[packet]
+protocol = "dns"
