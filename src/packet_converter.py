@@ -104,7 +104,8 @@ class PacketConverter:
                     f"[+] Disassembling {len(packet_bytes)} bytes to packet inbound/disassembled_packets/{packet}"
                 )
 
-                disassembled_packet = self.disassemble_dns(data=packet_bytes)
+                if (disassembled_packet := self.disassemble_dns(data=packet_bytes)) is None:
+                    continue
 
                 self.write_packet(
                     path=f"{df.CLIENT_DIR}/inbound/disassembled_packets/{packet}",
