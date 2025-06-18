@@ -17,6 +17,8 @@ from src.load_config import ClientConfig
 
 @define
 class ClientConnector(BaseConnector):
+    """Defines the ClientConnector class for connecting to a ServerConnector object
+    or another server I.E: OpenVPN server"""
 
     def __init__(self, config: ClientConfig):
         self.connector_type = "client"
@@ -34,7 +36,15 @@ class ClientConnector(BaseConnector):
         # Attempt to connect to a remote host
         self.sock.connect((self.endpoint, self.port))
 
-    def send(self, data) -> Optional[None]:
+    def send(self, data: bytes) -> Optional[int]:
+        """Transmits a byte string to the socket endpoint and port
+
+        Args:
+            data: The byte string to transmit
+
+        Returns:
+            The number of bytes transmitted or None if the transmission failed
+        """
         try:
             return self.sock.send(data)
         except ConnectionRefusedError:
@@ -44,6 +54,10 @@ class ClientConnector(BaseConnector):
         return None
 
     def transmit_service(self):
+        """Starts the transmit service, this will send all processed packets in
+        outbound/assembled_packets or inbound/disassembled_packets to the specified
+        endpoint and port
+        """
         logger.info(
             f"[{self.connector_type}] Started transmitter to {self.endpoint}:{self.port}"
         )

@@ -17,7 +17,8 @@ from src.load_config import ServerConfig
 
 @define
 class ServerConnector(BaseConnector):
-
+    """Defines the ServerConnector class to listen for ClientConnector objects
+    or other client software I.E: OpenVPN client"""
     def __init__(self, config: ServerConfig):
         self.connector_type = "server"
         self.endpoint = config.endpoint

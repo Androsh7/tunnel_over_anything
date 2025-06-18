@@ -52,6 +52,12 @@ DOMAIN_LIST = [
 
 
 def get_random_domain() -> bytes:
+    """returns a random domain as bytes for use in a DNS packet
+    I.E: ".com" becomes b"\x03com"
+
+    Returns:
+        domain as a bytes object
+    """
     domain = DOMAIN_LIST[randint(0, len(DOMAIN_LIST)) - 1]
     return b"".join(
         [
@@ -68,6 +74,25 @@ def build_query_list(
     ] = "A",
     query_class: Literal["IN", "ANY"] = "IN",
 ) -> list[bytes]:
+    """Constructs a list of DNS query packets based on the provided data, record type,
+    and query class.
+
+    Args:
+        data: The raw data to be included in the DNS query packets. This data
+            will be split into chunks of a maximum length defined by `MAX_RECORD_LENGTH`
+        record_type: The DNS record type to query
+        query_class: The DNS query class
+
+        list: A list of DNS query packets in byte format, each containing the
+        trimmed data, a random domain, and the specified record type and query class
+
+    Raises:
+        KeyError: If the provided `record_type` or `query_class` is not found in
+        `DNS_RECORD_TYPES` or `DNS_CLASSES`, respectively
+
+    Returns:
+        list of all queries in byte strings
+    """
     i = 0
     queries = []
     while i < len(data):
@@ -99,6 +124,18 @@ def build_body(
     authority_records: list[bytes] = [],
     additional_records: list[bytes] = [],
 ):
+    """Builds the body of a DNS packet
+
+    Args:
+        method: Specifies whether the packet is a query or a response
+        queries: A list of query records in byte format
+        answers: A list of answer records in byte format
+        authority_records: A list of authority records in byte format
+        additional_records: A list of additional records in byte format
+
+    Returns:
+        The constructed DNS packet body as a byte string
+    """
     return b"".join(
         [
             randint(1, 65535).to_bytes(2, byteorder="big"),  # ID
@@ -120,11 +157,28 @@ def build_body(
 
 
 def assemble_dns_packet(data: bytes) -> bytes:
+    """Assembles a DNS packet from the provided data
+
+    Args:
+        data: The raw data to be included in the DNS packet
+
+    Returns:
+        The assembled DNS packet in byte format.
+    """
     queries = build_query_list(data=data)
     return build_body(method="QUERY", queries=queries)
 
 
 def disassemble_dns_packet(packet_bytes: bytes) -> Optional[bytes]:
+    """Disassembles a DNS packet and extracts data embedded within the DNS queries
+
+    Args:
+        packet_bytes: The raw bytes of the DNS packet to be disassembled
+
+    Returns:
+        The extracted data from the DNS queries if successful,
+        or None if the packet cannot be parsed
+    """
     try:
         dns_packet = DNS(packet_bytes)
     except DissectException as e:

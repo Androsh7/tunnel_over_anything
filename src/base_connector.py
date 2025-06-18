@@ -14,6 +14,7 @@ import src.default as df
 
 @define
 class BaseConnector:
+    """A base class for the client and server connector"""
     connector_type: Literal["server", "client"] = field(
         validator=validators.and_(
             validators.instance_of(str), validators.in_(("server", "client"))
@@ -31,6 +32,12 @@ class BaseConnector:
     tx_address: tuple[str, int] = field()
 
     def receive(self) -> Optional[tuple[bytes, tuple[str, int]]]:
+        """Listens for incoming connections and returns the message and source address
+
+        Returns:
+            The message and source address as a tuple or a (None, None) tuple if a
+            connection refused message is received
+        """
         try:
             data, address = self.sock.recvfrom(df.MAX_RECV_BUFFER)
         except ConnectionRefusedError:
@@ -39,6 +46,9 @@ class BaseConnector:
         return data, address
 
     def listener_service(self):
+        """Starts the listener service, this will write all incoming packets to
+        the respective folder inbound/raw_capture or outbound/raw_capture
+        """
         logger.info(
             f"[{self.connector_type}] Started response listener for {self.endpoint}:{self.port}"
         )

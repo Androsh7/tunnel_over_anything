@@ -15,6 +15,8 @@ from src.packet_lib.dns import assemble_dns_packet, disassemble_dns_packet
 
 
 class PacketConverter:
+    """Defines the PacketConverter class for turning raw data into DNS packets or 
+    disassembling DNS packets to extract the raw binary data"""
 
     def __init__(self, config: PacketConfig):
         self.packet_type = config.protocol
@@ -31,17 +33,48 @@ class PacketConverter:
         return packet_list
 
     def read_packet(self, path: str) -> bytes:
+        """Returns a specified packet as a byte string
+
+        Args:
+            path: Local path to the binary file
+
+        Returns:
+            The contents of the binary files as a byte string
+        """
         with open(file=path, mode="rb") as file:
             return file.read()
 
     def write_packet(self, path: str, packet: bytes):
+        """Writes a packet byte string to a specified file
+
+        Args:
+            path: Path to the desired file
+            packet: The byte string to write
+        """
         with open(file=path, mode="wb") as file:
             file.write(packet)
 
     def delete_packet(self, path: str):
+        """Deletes a given file
+
+        Args:
+            path: Path to the desired file
+        """
         os.remove(path=path)
 
-    def assemble_dns(self, data: bytes) -> bytes:
+    def assemble_packet(self, data: bytes) -> bytes:
+        """Takes a byte string and assembles it into a DNS packet
+
+        Args:
+            data: The data to hide in the DNS packet
+
+        Raises:
+            KeyError: Raises an error if the PacketConverter object
+                has an invalid or unsupported packet_type
+
+        Returns:
+            The assembled packet as a byte string
+        """
         encoded_data = b64encode(data)
         match self.packet_type:
             case "dns":
@@ -49,10 +82,23 @@ class PacketConverter:
             case _:
                 raise KeyError(f"[assembler] Invalid packet type {self.packet_type}")
 
-    def disassemble_dns(self, data: bytes) -> Optional[bytes]:
+    def disassemble_packet(self, packet: bytes) -> Optional[bytes]:
+        """Takes an assembled packet and returns the hidden data
+
+        Args:
+            data: The packet bytes to dissect
+
+        Raises:
+            KeyError: Raises an error if the PacketConverter object
+                has an invalid or unsupported packet_type
+
+        Returns:
+            The data hidden in the packet as a byte string or None
+                if the dissection failed
+        """
         match self.packet_type:
             case "dns":
-                encoded_data = disassemble_dns_packet(packet_bytes=data)
+                encoded_data = disassemble_dns_packet(packet_bytes=packet)
             case _:
                 raise KeyError(f"[disassembler] Invalid packet type {self.packet_type}")
         if encoded_data is None:
@@ -61,6 +107,9 @@ class PacketConverter:
         return b64decode(encoded_data)
 
     def assemble_packets(self):
+        """Starts the assemble packets service, this takes packets from outbound/raw_capture and
+        builds them into assembled DNS packets in outbound/assembled_packets
+        """
         logger.info(
             f"[assembler] Started packet assembler ({df.OUTBOUND_RAW_PATH} -> {df.OUTBOUND_PROCESSED_PATH})"
         )
@@ -82,7 +131,7 @@ class PacketConverter:
                     f"[assembler] {packet_source_path} -> {packet_destination_path}"
                 )
 
-                assembled_packet = self.assemble_dns(data=packet_bytes)
+                assembled_packet = self.assemble_packet(data=packet_bytes)
 
                 self.write_packet(
                     path=f"{df.CLIENT_DIR}/{packet_destination_path}",
@@ -91,6 +140,9 @@ class PacketConverter:
                 self.delete_packet(packet_source_path)
 
     def disassemble_packets(self):
+        """Starts the packet disassembly service, this takes assembled DNS packets from
+        inbound/raw_capture and dissects the data into inbound/disassembled_packets
+        """
         logger.info(
             f"[disassembler] Started packet disassembler ({df.INBOUND_RAW_PATH} -> {df.INBOUND_PROCESSED_PATH})"
         )
@@ -113,7 +165,7 @@ class PacketConverter:
                 )
 
                 if (
-                    disassembled_packet := self.disassemble_dns(data=packet_bytes)
+                    disassembled_packet := self.disassemble_packet(packet=packet_bytes)
                 ) is None:
                     self.delete_packet(packet_source_path)
                     continue
