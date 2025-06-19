@@ -37,7 +37,7 @@ if __name__ == "__main__":
     logger.remove()
     logger.add(
         sys.stderr,
-        format="<level>| {level: <5} | {message}</level>",
+        format="<level>{time:YYYY-MM-DD HH:mm:ss} | {level: <5} | {message}</level>",
         colorize=True,
         level=config.log_level,
     )
