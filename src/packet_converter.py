@@ -24,7 +24,7 @@ class PacketConverter:
         self.encoding = config.encoding
         self.mode = config.mode
 
-        if self.mode == 'server':
+        if self.mode == 'client':
             self.assemble_source = df.OUTBOUND_RAW_PATH
             self.assemble_destination = df.OUTBOUND_PROCESSED_PATH
             self.disassemble_source = df.INBOUND_RAW_PATH
