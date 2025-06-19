@@ -22,6 +22,18 @@ class PacketConverter:
     def __init__(self, config: PacketConfig):
         self.packet_type = config.protocol
         self.encoding = config.encoding
+        self.mode = config.mode
+
+        if self.mode == 'server':
+            self.assemble_source = self.assemble_source
+            self.assemble_destination = self.assemble_destination
+            self.disassemble_source = self.disassemble_source
+            self.disassemble_destination = self.disassemble_destination
+        else:
+            self.disassemble_source = self.assemble_source
+            self.disassemble_destination = self.assemble_destination
+            self.assemble_source = self.disassemble_source
+            self.assemble_destination = self.disassemble_destination
 
     def grab_captures(self, dir: Literal["outbound", "inbound"]) -> list[str]:
         """Returns the list of raw packet filenames from oldest to newest
@@ -77,11 +89,13 @@ class PacketConverter:
             case "base64":
                 return b64encode(data)
             case "base85":
-                return bytes(parse.quote_from_bytes(b85encode(data)), encoding='ascii')
+                return bytes(parse.quote_from_bytes(b85encode(data)), encoding="ascii")
             case "none":
                 return data
             case _:
-                raise KeyError(f'Invalid or unsupported encoding method {self.encoding}')
+                raise KeyError(
+                    f"Invalid or unsupported encoding method {self.encoding}"
+                )
 
     def decode_data(self, data: bytes) -> bytes:
         """Decodes data to the protocol specified in the PacketConverter config
@@ -100,7 +114,9 @@ class PacketConverter:
             case "none":
                 return data
             case _:
-                raise KeyError(f'Invalid or unsupported encoding method {self.encoding}')
+                raise KeyError(
+                    f"Invalid or unsupported encoding method {self.encoding}"
+                )
 
     def assemble_packet(self, data: bytes) -> bytes:
         """Takes a byte string and assembles it into a DNS packet
@@ -138,11 +154,12 @@ class PacketConverter:
             The data hidden in the packet as a byte string or None
                 if the dissection failed
         """
+        encoded_data = None
         match self.packet_type:
             case "dns":
                 encoded_data = disassemble_dns_packet(packet_bytes=packet)
             case "none":
-                return encoded_data
+                return packet
             case _:
                 raise KeyError(f"[disassembler] Invalid packet type {self.packet_type}")
         if encoded_data is None:
@@ -151,23 +168,23 @@ class PacketConverter:
         return self.decode_data(encoded_data)
 
     def assemble_packets(self):
-        """Starts the assemble packets service, this takes packets from outbound/raw_capture and
-        builds them into assembled DNS packets in outbound/assembled_packets
+        """Starts the assemble packets service, this takes packets from raw_capture and
+        builds them into assembled DNS packets in assembled_packets
         """
         logger.info(
-            f"[assembler] Started packet assembler ({df.OUTBOUND_RAW_PATH} -> {df.OUTBOUND_PROCESSED_PATH})"
+            f"[assembler] Started packet assembler ({self.assemble_source} -> {self.assemble_destination})"
         )
         while True:
             packet_list = self.grab_captures(dir="outbound")
             if len(packet_list) == 0:
                 continue
             logger.debug(
-                f'[assembler] Processing {len(packet_list)} packet{"s" if len(packet_list) > 1 else ""} in {df.OUTBOUND_RAW_PATH} {packet_list}'
+                f'[assembler] Processing {len(packet_list)} packet{"s" if len(packet_list) > 1 else ""} in {self.assemble_source} {packet_list}'
             )
 
             for packet in packet_list:
-                packet_source_path = f"{df.OUTBOUND_RAW_PATH}/{packet}"
-                packet_destination_path = f"{df.OUTBOUND_PROCESSED_PATH}/{packet}"
+                packet_source_path = f"{self.assemble_source}/{packet}"
+                packet_destination_path = f"{self.assemble_destination}/{packet}"
                 packet_bytes = self.read_packet(
                     path=f"{df.CLIENT_DIR}/{packet_source_path}"
                 )
@@ -188,19 +205,19 @@ class PacketConverter:
         inbound/raw_capture and dissects the data into inbound/disassembled_packets
         """
         logger.info(
-            f"[disassembler] Started packet disassembler ({df.INBOUND_RAW_PATH} -> {df.INBOUND_PROCESSED_PATH})"
+            f"[disassembler] Started packet disassembler ({self.disassemble_source} -> {self.disassemble_destination})"
         )
         while True:
             packet_list = self.grab_captures(dir="inbound")
             if len(packet_list) == 0:
                 continue
             logger.debug(
-                f'[disassembler] Processing {len(packet_list)} packet{"s" if len(packet_list) > 1 else ""} in {df.INBOUND_RAW_PATH} {packet_list}'
+                f'[disassembler] Processing {len(packet_list)} packet{"s" if len(packet_list) > 1 else ""} in {self.disassemble_source} {packet_list}'
             )
 
             for packet in packet_list:
-                packet_source_path = f"{df.INBOUND_RAW_PATH}/{packet}"
-                packet_destination_path = f"{df.INBOUND_PROCESSED_PATH}/{packet}"
+                packet_source_path = f"{self.disassemble_source}/{packet}"
+                packet_destination_path = f"{self.disassemble_destination}/{packet}"
                 packet_bytes = self.read_packet(
                     path=f"{df.CLIENT_DIR}/{packet_source_path}"
                 )

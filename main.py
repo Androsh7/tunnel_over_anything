@@ -29,9 +29,6 @@ if __name__ == "__main__":
         level=config.log_level,
     )
 
-    # Set the log level
-    # logger.configure(handlers=[{"sink": sys.stderr, "level": config.log_level}])
-
     # Create sub-directories if they don't exist
     for directory in df.DIRECTORY_PATHS:
         os.makedirs(name=f"{df.CLIENT_DIR}/{directory}/", exist_ok=True)
