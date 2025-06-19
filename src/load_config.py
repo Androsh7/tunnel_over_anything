@@ -69,6 +69,11 @@ class PacketConfig:
             validators.instance_of(str), validators.in_(df.PROTOCOLS)
         )
     )
+    encoding: str = field(
+        validator=validators.and_(
+            validators.instance_of(str), validators.in_(df.ENCODING)
+        )
+    )
 
     @classmethod
     def from_dict(cls, data: dict):
@@ -77,7 +82,7 @@ class PacketConfig:
         Args:
             data: the dictionary with the packet config
         """
-        return cls(protocol=data["protocol"].lower())
+        return cls(protocol=data["protocol"].lower(), encoding=data["encoding".lower()])
 
 
 @define

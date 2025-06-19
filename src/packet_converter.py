@@ -2,8 +2,9 @@
 
 # Standard libraries
 import os
-from base64 import b64decode, b64encode
+from base64 import b64decode, b64encode, b85encode, b85decode
 from typing import Literal, Optional
+from urllib import parse
 
 # Third-party libraries
 from loguru import logger
@@ -15,11 +16,12 @@ from src.packet_lib.dns import assemble_dns_packet, disassemble_dns_packet
 
 
 class PacketConverter:
-    """Defines the PacketConverter class for turning raw data into DNS packets or 
+    """Defines the PacketConverter class for turning raw data into DNS packets or
     disassembling DNS packets to extract the raw binary data"""
 
     def __init__(self, config: PacketConfig):
         self.packet_type = config.protocol
+        self.encoding = config.encoding
 
     def grab_captures(self, dir: Literal["outbound", "inbound"]) -> list[str]:
         """Returns the list of raw packet filenames from oldest to newest
@@ -62,6 +64,44 @@ class PacketConverter:
         """
         os.remove(path=path)
 
+    def encode_data(self, data: bytes) -> bytes:
+        """Encodes data to the protocol specified in the PacketConverter config
+
+        Args:
+            data: byte string to encode
+
+        Returns:
+            encoded byte string
+        """
+        match (self.encoding):
+            case "base64":
+                return b64encode(data)
+            case "base85":
+                return bytes(parse.quote_from_bytes(b85encode(data)), encoding='ascii')
+            case "none":
+                return data
+            case _:
+                raise KeyError(f'Invalid or unsupported encoding method {self.encoding}')
+
+    def decode_data(self, data: bytes) -> bytes:
+        """Decodes data to the protocol specified in the PacketConverter config
+
+        Args:
+            data: byte string to decode
+
+        Returns:
+            decoded byte string
+        """
+        match (self.encoding):
+            case "base64":
+                return b64decode(data)
+            case "base85":
+                return b85decode(parse.unquote_to_bytes(data))
+            case "none":
+                return data
+            case _:
+                raise KeyError(f'Invalid or unsupported encoding method {self.encoding}')
+
     def assemble_packet(self, data: bytes) -> bytes:
         """Takes a byte string and assembles it into a DNS packet
 
@@ -75,10 +115,12 @@ class PacketConverter:
         Returns:
             The assembled packet as a byte string
         """
-        encoded_data = b64encode(data)
+        encoded_data = self.encode_data(data)
         match self.packet_type:
             case "dns":
                 return assemble_dns_packet(encoded_data)
+            case "none":
+                return encoded_data
             case _:
                 raise KeyError(f"[assembler] Invalid packet type {self.packet_type}")
 
@@ -99,12 +141,14 @@ class PacketConverter:
         match self.packet_type:
             case "dns":
                 encoded_data = disassemble_dns_packet(packet_bytes=packet)
+            case "none":
+                return encoded_data
             case _:
                 raise KeyError(f"[disassembler] Invalid packet type {self.packet_type}")
         if encoded_data is None:
             return encoded_data
 
-        return b64decode(encoded_data)
+        return self.decode_data(encoded_data)
 
     def assemble_packets(self):
         """Starts the assemble packets service, this takes packets from outbound/raw_capture and

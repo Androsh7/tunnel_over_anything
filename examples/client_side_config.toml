@@ -12,4 +12,5 @@ endpoint = "127.0.0.1"
 port = 1194 # Default OpenVPN port
 
 [packet]
-protocol = "dns"
+protocol = "dns" # Options: dns, none
+encoding = "base85" # Options: base64, base85, none
