@@ -159,7 +159,7 @@ class PacketConverter:
             case "dns":
                 encoded_data = disassemble_dns_packet(packet_bytes=packet)
             case "none":
-                return packet
+                encoded_data = packet
             case _:
                 raise KeyError(f"[disassembler] Invalid packet type {self.packet_type}")
         if encoded_data is None:
