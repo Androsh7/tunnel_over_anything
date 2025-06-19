@@ -2,8 +2,10 @@
 
 # Standard libraries
 import asyncio
+import traceback
 import os
 import sys
+import signal
 from concurrent.futures import ThreadPoolExecutor
 
 # Third-party libraries
@@ -15,6 +17,17 @@ from src.client import ClientConnector
 from src.load_config import Config
 from src.packet_converter import PacketConverter
 from src.server import ServerConnector
+
+def auto_restart_service(service, name: str):
+    def wrapped():
+        while True:
+            try:
+                service()
+            except Exception as e:
+                logger.error(f"[{name}] Crashed: {e}\n{traceback.format_exc()}")
+            else:
+                logger.error(f"[{name}] Exited cleanly, restarting...")
+    return wrapped
 
 if __name__ == "__main__":
     # Load config
@@ -42,13 +55,19 @@ if __name__ == "__main__":
     try:
         executor = ThreadPoolExecutor(max_workers=6)
         loop = asyncio.new_event_loop()
-        loop.run_in_executor(executor, client.transmit_service)
-        loop.run_in_executor(executor, client.listener_service)
-        loop.run_in_executor(executor, server.transmit_service)
-        loop.run_in_executor(executor, server.listener_service)
-        loop.run_in_executor(executor, packet.assembler_service)
-        loop.run_in_executor(executor, packet.disassembler_service)
+        asyncio.set_event_loop(loop)
+
+        # create threads
+        loop.run_in_executor(executor, auto_restart_service(client.transmit_service, 'client-transmitter'))
+        loop.run_in_executor(executor, auto_restart_service(client.listener_service, 'client-listener'))
+        loop.run_in_executor(executor, auto_restart_service(server.transmit_service, 'server-transmitter'))
+        loop.run_in_executor(executor, auto_restart_service(server.listener_service, 'server-listener'))
+        loop.run_in_executor(executor, auto_restart_service(packet.assembler_service, 'packet-assembler'))
+        loop.run_in_executor(executor, auto_restart_service(packet.disassembler_service, 'packet-disassembler'))
+
+        # run loop until stopped
         loop.run_forever()
+
     except KeyboardInterrupt:
         logger.debug("User initiated shutdown")
     finally:
