@@ -4,7 +4,7 @@
 import os
 from datetime import datetime
 
-CLIENT_DIR = "/".join(os.path.dirname(os.path.abspath(__file__)).split("/")[:-1])
+CLIENT_DIR = "/".join(os.path.dirname(os.path.abspath(__file__)).replace("\\", "/").split("/")[:-1])
 MAX_RECV_BUFFER = 65535
 PROTOCOLS = ["dns", "none"]
 ENCODING = ["base64", "base85", "none"]
