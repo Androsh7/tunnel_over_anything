@@ -21,11 +21,6 @@ class ConnectorConfig:
     )
     recv_path: str = field(validator=validators.instance_of(str))
     tx_path: str = field(validator=validators.instance_of(str))
-    mode: str = field(
-        validator=validators.and_(
-            validators.instance_of(str), validators.in_(["server", "client"])
-        )
-    )
 
 
 @define
@@ -40,11 +35,11 @@ class ClientConfig(ConnectorConfig):
             data: the dictionary with the client config
         """
         if mode == 'client':
-            recv_path=df.INBOUND_RAW_PATH,
-            tx_path=df.OUTBOUND_PROCESSED_PATH,
+            recv_path=df.INBOUND_RAW_PATH
+            tx_path=df.OUTBOUND_PROCESSED_PATH
         else:
-            recv_path=df.OUTBOUND_RAW_PATH,
-            tx_path=df.INBOUND_PROCESSED_PATH,
+            recv_path=df.OUTBOUND_RAW_PATH
+            tx_path=df.INBOUND_PROCESSED_PATH
 
         return cls(
             endpoint=data["endpoint"],
@@ -66,11 +61,11 @@ class ServerConfig(ConnectorConfig):
             data: the dictionary with the server config
         """
         if mode == 'client':
-            recv_path=df.OUTBOUND_RAW_PATH,
-            tx_path=df.INBOUND_PROCESSED_PATH,
+            recv_path=df.OUTBOUND_RAW_PATH
+            tx_path=df.INBOUND_PROCESSED_PATH
         else:
-            recv_path=df.INBOUND_RAW_PATH,
-            tx_path=df.OUTBOUND_PROCESSED_PATH,
+            recv_path=df.INBOUND_RAW_PATH
+            tx_path=df.OUTBOUND_PROCESSED_PATH
         return cls(
             endpoint=data["endpoint"],
             port=data["port"],
@@ -100,7 +95,7 @@ class PacketConfig:
     )
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict, mode: Literal["server", "client"]):
         """Creates a PacketConfig object from a dictionary
 
         Args:
@@ -109,6 +104,7 @@ class PacketConfig:
         return cls(
             protocol=data["protocol"].lower(),
             encoding=data["encoding".lower()],
+            mode=mode,
         )
 
 
