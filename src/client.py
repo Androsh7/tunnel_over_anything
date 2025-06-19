@@ -73,5 +73,8 @@ class ClientConnector(BaseConnector):
                 logger.info(
                     f"[{self.connector_type}] Transmitting {len(packet_bytes)} byte packet {self.tx_path}/{packet} to {self.endpoint}:{self.port}"
                 )
+                logger.trace(
+                    f"[{self.connector_type}] {packet_bytes}"
+                )
                 self.send(data=packet_bytes)
                 os.remove(packet_path)

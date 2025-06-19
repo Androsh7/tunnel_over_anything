@@ -62,5 +62,8 @@ class ServerConnector(BaseConnector):
                 logger.info(
                     f"[{self.connector_type}] Transmitting {len(packet_bytes)} byte packet {self.tx_path}/{packet} to {self.tx_address[0]}:{self.tx_address[1]}"
                 )
+                logger.trace(
+                    f"[{self.connector_type}] {packet_bytes}"
+                )
                 self.send_to(data=packet_bytes)
                 os.remove(packet_path)
