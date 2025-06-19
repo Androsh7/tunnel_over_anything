@@ -25,23 +25,23 @@ class PacketConverter:
         self.mode = config.mode
 
         if self.mode == 'server':
-            self.assemble_source = self.assemble_source
-            self.assemble_destination = self.assemble_destination
-            self.disassemble_source = self.disassemble_source
-            self.disassemble_destination = self.disassemble_destination
+            self.assemble_source = df.OUTBOUND_RAW_PATH
+            self.assemble_destination = df.OUTBOUND_PROCESSED_PATH
+            self.disassemble_source = df.INBOUND_RAW_PATH
+            self.disassemble_destination = df.INBOUND_PROCESSED_PATH
         else:
-            self.disassemble_source = self.assemble_source
-            self.disassemble_destination = self.assemble_destination
-            self.assemble_source = self.disassemble_source
-            self.assemble_destination = self.disassemble_destination
+            self.disassemble_source = df.OUTBOUND_RAW_PATH
+            self.disassemble_destination = df.OUTBOUND_PROCESSED_PATH
+            self.assemble_source = df.INBOUND_RAW_PATH
+            self.assemble_destination = df.INBOUND_PROCESSED_PATH
 
-    def grab_captures(self, dir: Literal["outbound", "inbound"]) -> list[str]:
+    def grab_captures(self, dir: str) -> list[str]:
         """Returns the list of raw packet filenames from oldest to newest
 
         Returns:
             List of the sorted raw packet filenames from oldest to newest
         """
-        packet_list = os.listdir(path=f"{df.CLIENT_DIR}/{dir}/raw_capture")
+        packet_list = os.listdir(path=f"{df.CLIENT_DIR}/{dir}")
         packet_list.sort()  # sort from oldest to newest
 
         return packet_list
@@ -167,7 +167,7 @@ class PacketConverter:
 
         return self.decode_data(encoded_data)
 
-    def assemble_packets(self):
+    def assembler_service(self):
         """Starts the assemble packets service, this takes packets from raw_capture and
         builds them into assembled DNS packets in assembled_packets
         """
@@ -175,7 +175,7 @@ class PacketConverter:
             f"[assembler] Started packet assembler ({self.assemble_source} -> {self.assemble_destination})"
         )
         while True:
-            packet_list = self.grab_captures(dir="outbound")
+            packet_list = self.grab_captures(dir=self.assemble_source)
             if len(packet_list) == 0:
                 continue
             logger.debug(
@@ -200,7 +200,7 @@ class PacketConverter:
                 )
                 self.delete_packet(packet_source_path)
 
-    def disassemble_packets(self):
+    def disassembler_service(self):
         """Starts the packet disassembly service, this takes assembled DNS packets from
         inbound/raw_capture and dissects the data into inbound/disassembled_packets
         """
@@ -208,7 +208,7 @@ class PacketConverter:
             f"[disassembler] Started packet disassembler ({self.disassemble_source} -> {self.disassemble_destination})"
         )
         while True:
-            packet_list = self.grab_captures(dir="inbound")
+            packet_list = self.grab_captures(dir=self.disassemble_source)
             if len(packet_list) == 0:
                 continue
             logger.debug(

@@ -46,8 +46,8 @@ if __name__ == "__main__":
         loop.run_in_executor(executor, client.listener_service)
         loop.run_in_executor(executor, server.transmit_service)
         loop.run_in_executor(executor, server.listener_service)
-        loop.run_in_executor(executor, packet.assemble_packets)
-        loop.run_in_executor(executor, packet.disassemble_packets)
+        loop.run_in_executor(executor, packet.assembler_service)
+        loop.run_in_executor(executor, packet.disassembler_service)
         loop.run_forever()
     except KeyboardInterrupt:
         logger.debug("User initiated shutdown")
