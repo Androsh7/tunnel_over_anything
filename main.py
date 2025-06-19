@@ -4,7 +4,7 @@
 import asyncio
 import os
 import sys
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 
 # Third-party libraries
 from loguru import logger
@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     # Start process workers
     try:
-        executor = ProcessPoolExecutor(max_workers=6)
+        executor = ThreadPoolExecutor(max_workers=6)
         loop = asyncio.new_event_loop()
         loop.run_in_executor(executor, client.transmit_service)
         loop.run_in_executor(executor, client.listener_service)
