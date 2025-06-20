@@ -24,16 +24,10 @@ class PacketConverter:
         self.encoding = config.encoding
         self.mode = config.mode
 
-        if self.mode == 'client':
-            self.assemble_source = df.OUTBOUND_RAW_PATH
-            self.assemble_destination = df.OUTBOUND_PROCESSED_PATH
-            self.disassemble_source = df.INBOUND_RAW_PATH
-            self.disassemble_destination = df.INBOUND_PROCESSED_PATH
-        else:
-            self.disassemble_source = df.OUTBOUND_RAW_PATH
-            self.disassemble_destination = df.OUTBOUND_PROCESSED_PATH
-            self.assemble_source = df.INBOUND_RAW_PATH
-            self.assemble_destination = df.INBOUND_PROCESSED_PATH
+        self.assemble_source = df.OUTBOUND_RAW_PATH
+        self.assemble_destination = df.OUTBOUND_PROCESSED_PATH
+        self.disassemble_source = df.INBOUND_RAW_PATH
+        self.disassemble_destination = df.INBOUND_PROCESSED_PATH
 
     def grab_captures(self, dir: str) -> list[str]:
         """Returns the list of raw packet filenames from oldest to newest
