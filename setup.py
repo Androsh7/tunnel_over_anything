@@ -1,9 +1,9 @@
-from setuptools import find_packages, setup
+from setuptools import setup
 
 setup(
     name="tunnel_over_anything",
-    version="1.0.0",
-    description="a python program for tunneling via various protocols",
+    version="0.1.0",
+    description="Tunneling software that disguises TCP/UDP traffic using DNS, HTTP, and other protocols",
     author="androsh7",
     install_requires=[
         "attrs>=25.3.0",
