@@ -1,10 +1,10 @@
 # Import configuration for tunnel_over_anything
 
 # Standard libraries
-import toml
 from typing import Literal
 
 # Third-party libraries
+import toml
 from attrs import define, field, validators
 
 # Project libraries
@@ -34,12 +34,12 @@ class ClientConfig(ConnectorConfig):
         Args:
             data: the dictionary with the client config
         """
-        if mode == 'client':
-            recv_path=df.INBOUND_RAW_PATH
-            tx_path=df.OUTBOUND_PROCESSED_PATH
+        if mode == "client":
+            recv_path = df.INBOUND_RAW_PATH
+            tx_path = df.OUTBOUND_PROCESSED_PATH
         else:
-            recv_path=df.OUTBOUND_RAW_PATH
-            tx_path=df.INBOUND_PROCESSED_PATH
+            recv_path = df.OUTBOUND_RAW_PATH
+            tx_path = df.INBOUND_PROCESSED_PATH
 
         return cls(
             endpoint=data["endpoint"],
@@ -60,12 +60,12 @@ class ServerConfig(ConnectorConfig):
         Args:
             data: the dictionary with the server config
         """
-        if mode == 'client':
-            recv_path=df.OUTBOUND_RAW_PATH
-            tx_path=df.INBOUND_PROCESSED_PATH
+        if mode == "client":
+            recv_path = df.OUTBOUND_RAW_PATH
+            tx_path = df.INBOUND_PROCESSED_PATH
         else:
-            recv_path=df.INBOUND_RAW_PATH
-            tx_path=df.OUTBOUND_PROCESSED_PATH
+            recv_path = df.INBOUND_RAW_PATH
+            tx_path = df.OUTBOUND_PROCESSED_PATH
         return cls(
             endpoint=data["endpoint"],
             port=data["port"],
@@ -136,7 +136,7 @@ class Config:
         """
         with open(file=f"{df.CLIENT_DIR}/{file_name}", mode="r") as file:
             config_dict = toml.load(file)
-            
+
             mode = config_dict["mode"].lower()
         return cls(
             log_level=config_dict["log_level"].upper(),

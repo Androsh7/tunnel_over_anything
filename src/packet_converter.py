@@ -2,8 +2,8 @@
 
 # Standard libraries
 import os
-from base64 import b64decode, b64encode, b85encode, b85decode
-from typing import Literal, Optional
+from base64 import b64decode, b64encode, b85decode, b85encode
+from typing import Optional
 from urllib import parse
 
 # Third-party libraries
@@ -66,7 +66,7 @@ class PacketConverter:
         """Deletes a given file
 
         Args:
-            path: Path to the desired file
+            Path to the desired file
         """
         os.remove(path=path)
 
@@ -98,7 +98,7 @@ class PacketConverter:
             data: byte string to decode
 
         Returns:
-            decoded byte string
+            Decoded byte string
         """
         match (self.encoding):
             case "base64":
