@@ -1,0 +1,15 @@
+# Python
+.venv/
+__pycache__/
+*.egg-info/
+build/
+
+# VSCode
+.vscode/
+
+# Project
+outbound/
+inbound/
+docs/
+examples/
+config.toml
