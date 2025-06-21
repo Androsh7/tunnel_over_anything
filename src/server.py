@@ -1,4 +1,4 @@
-# Connector class for transmitting data to the client node
+"""Connector class for transmitting data to the client node"""
 
 # Standard libraries
 import os
@@ -21,7 +21,7 @@ class ServerConnector(BaseConnector):
     or other client software I.E: OpenVPN client"""
 
     def __init__(self, config: ServerConfig):
-        self.connector_type = "server"
+        self.connector_type = 'server'
         self.endpoint = config.endpoint
         self.port = config.port
         self.tx_path = config.tx_path
@@ -37,6 +37,15 @@ class ServerConnector(BaseConnector):
         self.sock.bind((self.endpoint, self.port))
 
     def send_to(self, data: bytes) -> Optional[int]:
+        """Transmits a byte string to the stored tx_address
+
+        Args:
+            data: The byte string to transmit
+
+        Returns:
+            The number of bytes transmitted or None if the
+                transmission failed
+        """
         try:
             return self.sock.sendto(data, self.tx_address)
         except ConnectionRefusedError as e:
@@ -44,24 +53,28 @@ class ServerConnector(BaseConnector):
         return None
 
     def transmit_service(self):
+        """Starts the transmit service, this will send all processed packets
+        to the tx_address stored by the listener_service
+        """
         logger.info(
-            f"[{self.connector_type}] Started transmitter from {self.endpoint}:{self.port}"
+            f'[{self.connector_type}] Started transmitter from {self.endpoint}:{self.port}'
         )
         # wait for a tx_endpoint and tx_port to be listed
         while self.tx_address is None:
             continue
         while True:
             # grab a list of all packets and sort them oldest to newest
-            packet_list = os.listdir(path=f"{df.CLIENT_DIR}/{self.tx_path}/")
+            packet_list = os.listdir(path=f'{df.CLIENT_DIR}/{self.tx_path}/')
             packet_list.sort()
             for packet in packet_list:
-                packet_path = f"{df.CLIENT_DIR}/{self.tx_path}/{packet}"
-                with open(file=packet_path, mode="rb") as file:
+                packet_path = f'{df.CLIENT_DIR}/{self.tx_path}/{packet}'
+                with open(file=packet_path, mode='rb') as file:
                     packet_bytes = file.read()
 
                 logger.info(
-                    f"[{self.connector_type}] Transmitting {len(packet_bytes)} byte packet {self.tx_path}/{packet} to {self.tx_address[0]}:{self.tx_address[1]}"
+                    f'[{self.connector_type}] Transmitting {len(packet_bytes)} byte packet '
+                    f'{self.tx_path}/{packet} to {self.tx_address[0]}:{self.tx_address[1]}'
                 )
-                logger.trace(f"[{self.connector_type}] {packet_bytes}")
+                logger.trace(f'[{self.connector_type}] {packet_bytes}')
                 self.send_to(data=packet_bytes)
                 os.remove(packet_path)

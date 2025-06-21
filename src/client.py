@@ -1,4 +1,4 @@
-# Connector class for transmitting data to the server node
+"""Connector class for transmitting data to the server node"""
 
 # Standard libraries
 import os
@@ -21,7 +21,7 @@ class ClientConnector(BaseConnector):
     or another server I.E: OpenVPN server"""
 
     def __init__(self, config: ClientConfig):
-        self.connector_type = "client"
+        self.connector_type = 'client'
         self.endpoint = config.endpoint
         self.port = config.port
         self.tx_path = config.tx_path
@@ -49,30 +49,30 @@ class ClientConnector(BaseConnector):
             return self.sock.send(data)
         except ConnectionRefusedError:
             logger.error(
-                f"[{self.connector_type}] Connection refused by {self.endpoint}:{self.port}"
+                f'[{self.connector_type}] Connection refused by {self.endpoint}:{self.port}'
             )
         return None
 
     def transmit_service(self):
-        """Starts the transmit service, this will send all processed packets in
-        outbound/assembled_packets or inbound/disassembled_packets to the specified
-        endpoint and port
+        """Starts the transmit service, this will send all 
+        processed packets to the specified endpoint and port
         """
         logger.info(
-            f"[{self.connector_type}] Started transmitter to {self.endpoint}:{self.port}"
+            f'[{self.connector_type}] Started transmitter to {self.endpoint}:{self.port}'
         )
         while True:
             # grab a list of all packets and sort them oldest to newest
-            packet_list = os.listdir(path=f"{df.CLIENT_DIR}/{self.tx_path}/")
+            packet_list = os.listdir(path=f'{df.CLIENT_DIR}/{self.tx_path}/')
             packet_list.sort()
             for packet in packet_list:
-                packet_path = f"{df.CLIENT_DIR}/{self.tx_path}/{packet}"
-                with open(file=packet_path, mode="rb") as file:
+                packet_path = f'{df.CLIENT_DIR}/{self.tx_path}/{packet}'
+                with open(file=packet_path, mode='rb') as file:
                     packet_bytes = file.read()
 
                 logger.info(
-                    f"[{self.connector_type}] Transmitting {len(packet_bytes)} byte packet {self.tx_path}/{packet} to {self.endpoint}:{self.port}"
+                    f'[{self.connector_type}] Transmitting {len(packet_bytes)} byte packet '
+                    f'{self.tx_path}/{packet} to {self.endpoint}:{self.port}'
                 )
-                logger.trace(f"[{self.connector_type}] {packet_bytes}")
+                logger.trace(f'[{self.connector_type}] {packet_bytes}')
                 self.send(data=packet_bytes)
                 os.remove(packet_path)
