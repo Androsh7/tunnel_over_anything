@@ -1,21 +1,11 @@
 title = "Config"
 
-# specify the logging level (TRACE, DEBUG, INFO, ERROR, CRITICAL)
 log_level = "INFO"
+# Controls the amount of logs that are printed
+# TRACE, DEBUG, INFO, ERROR, CRITICAL
 
-[client]
-endpoint = "<REMOTE_HOST>"
-port = 53
-
-[server]
-endpoint = "127.0.0.1"
-port = 1194 # Default OpenVPN port
-
-[packet]
-protocol = "dns" # Options: dns, none
-encoding = "base85" # Options: base64, base85, none
-mode = "server"
-# Determines whether to run in server or client mode
+mode = "client"
+# Determines whether to assemble/disassemble inbound/outbound packets
 # server mode:
 #                      [ ------------- Tunnel over Anything --------------]
 #   encoded packets -> server connector -> disassembler -> client connector -> raw data
@@ -25,3 +15,27 @@ mode = "server"
 #                      [ ------------- Tunnel over Anything --------------]
 #          raw data -> server connector ->   assembler  -> client connector -> encoded data
 #          raw data <- server connector <- disassembler <- client connector <- encoded data
+
+[client]
+endpoint = "remote-endpoint.com"
+port = 53
+# Configures the client connector (this connects to a server)
+
+[server]
+endpoint = "127.0.0.1"
+port = 1194
+# Configures the server connector (this listens for incoming connections)
+# endpoint: specify 0.0.0.0 to host the server publicly or 127.0.0.1 to only host the server locally
+# DOCKER: running image in docker requires endpoint 0.0.0.0
+
+[packet]
+protocol = "dns"
+# Defines the application layer protocol that is used to hide the data
+# none - transmits the raw encoded or non-encoded data without any header, use this for relays
+# dns - transmits data as UDP DNS queries, ensure the destination port is 53
+
+encoding = "base85"
+# Defines how data is encoded before being assembled into packets
+# none - no encoding, use this if you want to create a relay
+# base64 - commonly used encoding method however this is also easily detectable
+# base85 - recommended encoding method to avoid detection and minimize packet size
