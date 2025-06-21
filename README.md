@@ -22,7 +22,7 @@ The traditional setup involves a "client" instance which transmits to a "server"
 
 ## Running Tunnel_Over_Anything
 
-Run via docker
+Run via docker (experimental)
 ```
 # client example
 docker run -v path/to/config.toml:/tunnel_over_anything/config.toml -p 127.0.0.1:<host_port>:<container_port> --restart unless stopped -d tunnel_over_anything:latest
@@ -31,7 +31,7 @@ docker run -v path/to/config.toml:/tunnel_over_anything/config.toml -p 127.0.0.1
 docker run -v path/to/config.toml:/tunnel_over_anything/config.toml -p <host_port>:<container_port> --restart unless stopped -d tunnel_over_anything:latest
 ```
 
-Run via python
+Run via python (recommended)
 ```
 python -m venv .venv
 pip install .
