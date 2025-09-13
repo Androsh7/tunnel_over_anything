@@ -68,7 +68,12 @@ class PacketConverter:
         Args:
             Path to the desired file
         """
-        os.remove(path=path)
+        try:
+            os.remove(path)
+        except PermissionError:
+            logger.error(
+                f'[{self.connector_type}] Permission denied when attempting to delete {path}'
+            )
 
     def encode_data(self, data: bytes) -> bytes:
         """Encodes data to the protocol specified in the PacketConverter config

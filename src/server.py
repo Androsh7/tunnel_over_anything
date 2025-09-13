@@ -77,4 +77,9 @@ class ServerConnector(BaseConnector):
                 )
                 logger.trace(f'[{self.connector_type}] {packet_bytes}')
                 self.send_to(data=packet_bytes)
-                os.remove(packet_path)
+                try:
+                    os.remove(packet_path)
+                except PermissionError:
+                    logger.error(
+                        f'[{self.connector_type}] Permission denied when attempting to delete {packet_path}'
+                    )
