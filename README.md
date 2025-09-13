@@ -1,5 +1,4 @@
 # Tunnel over Anything
-![ToA icon](docs/tunnel_over_anything.png)
 > [!CAUTION]
 > THIS TOOL IS FOR AUTHORIZED TESTING AND RESEARCH PURPOSES ONLY<br>
 > UNAUTHORIZED USE OF THIS TOOL MAY CONSTITUTE A CRIME
@@ -20,15 +19,15 @@ Obfuscation methods:<br>
 
 To transmit obfuscated data over a network, two instances of Tunnel over Anything (ToA) are required. At least one node must operate in server mode with a publicly accessible port to accept incoming connections. The other node runs in client mode, initiating the connection to the server.
 
-![Setup diagram](docs/tunnel_over_anything.svg)
+![Setup diagram](docs/Tunnel_Over_Anything.drawio.svg)
 
 ### Server Mode:
 
-In server mode, ToA expects to receive encoded packets on its listening port, disassemble the data and transmit it via the client connector.
+In server mode, ToA expects to receive encoded packets on it's listening port, disassemble the data and transmit it via the client connector.
 
-Generally the server connector will be public-facing, whereas the client connector will point to a local service.
+Generally the server connector will be public facing, whereas the client connector will point to a local service.
 
-[Example client config](docs/client_side_config.toml)
+[Example client config](examples/client_side_config.toml)
 ```
                    [ ------------- Tunnel over Anything --------------]
 encoded packets -> server connector -> disassembler -> client connector -> raw data
@@ -38,16 +37,16 @@ encoded packets <- server connector <-   assembler  <- client connector <- raw d
 
 In client mode, ToA expects to receive raw packets on it's listening port, assemble the data and transmit it via the client connector.
 
-Generally the server connector will be internally facing, whereas the client connector will point to a public IP.
+Generally the server connector will be internally facing, whereas the client connector will point to a public ip.
 
-[Example server config](docs/server_side_config.toml)
+[Example server config](examples/server_side_config.toml)
 ```
                    [ ------------- Tunnel over Anything --------------]
        raw data -> server connector ->   assembler  -> client connector -> encoded data
        raw data <- server connector <- disassembler <- client connector <- encoded data
 ```
 
-### Run via Docker (experimental)
+### Run via docker (experimental)
 ```
 docker run \
     -v path/to/config.toml:/tunnel_over_anything/config.toml \
@@ -57,45 +56,18 @@ docker run \
     tunnel_over_anything:latest
 ```
 
-### Run via Python (stable)
-#### Run on Linux
+### Run via python (recommended)
+#### Run on linux
 ```
 python -m venv .venv
 source .venv/bin/activate
 pip install .
-python main.py --config=<CONFIG_PATH>
+python main.py
 ```
-#### Run on Windows
+#### Run on windows
 ```
 python -m venv .venv
 .\.venv\Scripts\activate.ps1
 pip install .
-python main.py --config=<CONFIG_PATH>
+python main.py
 ```
-
-### Compile and Run via Nuitka (Recommended)
-
-Nuitka is a python compiler that simplifies deployment of ToA and substantially improves performance
-
-#### Build Executable
-```
-pip install Nuitka
-
-# Windows install
-python -m nuitka main.py --onefile --standalone --windows-icon-from-ico=docs/tunnel_over_anything.ico --output-filename=tunnel_over_anything.exe
-
-# Linux install
-sudo apt-get install patchelf # Required to build executable
-python -m nuitka main.py --onefile --standalone --linux-icon=docs/tunnel_over_anything.ico --output-filename=tunnel_over_anything.bin
-```
-
-#### Run Executable
-
-```
-# Windows
-./tunnel_over_anything.exe --config=<CONFIG_PATH>
-
-# Linux
-./tunnel_over_anything.bin --config=<CONFIG_PATH>
-```
-Note: Nuitka-compiled executables may trigger antivirus/Windows Defender alerts, and will likely need to be whitelisted.

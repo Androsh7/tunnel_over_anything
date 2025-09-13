@@ -2,7 +2,6 @@
 
 # Standard libraries
 import asyncio
-import argparse
 import os
 import sys
 import traceback
@@ -39,23 +38,9 @@ def auto_restart_service(service: Callable[[], None], name: str) -> Callable[[],
     return wrapped
 
 
-def main():
-    """Main entry point for the tunnel_over_anything client application"""
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(
-        description="Tunnel over Anything client application"
-    )
-    parser.add_argument(
-        "--config",
-        "-c",
-        help="Path to the config file",
-        default=f"{df.CLIENT_DIR}/config.toml",
-        required=False,
-    )
-    args = parser.parse_args()
-
+if __name__ == "__main__":
     # Load config
-    config = Config.load_config(file_path=args.config.strip())
+    config = Config.load_config()
 
     # Set the log format
     logger.remove()
@@ -119,7 +104,3 @@ def main():
                 deleted_file_count += 1
         if deleted_file_count > 0:
             logger.info(f"Deleted {deleted_file_count} binary files")
-
-
-if __name__ == "__main__":
-    main()
