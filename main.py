@@ -23,20 +23,22 @@ def auto_restart_service(service: Callable[[], None], name: str) -> Callable[[],
     """Automatically restarts the function if an exception is thrown
 
     Args:
-        service: function or method to automatically restart 
+        service: function or method to automatically restart
         name: Name of the service (for logging only)
     """
+
     def wrapped():
         try:
             service()
         except Exception as e:
-            logger.error(f'[{name}] Crashed: {e}\n{traceback.format_exc()}')
+            logger.error(f"[{name}] Crashed: {e}\n{traceback.format_exc()}")
         else:
-            logger.error(f'[{name}] Exited cleanly, restarting...')
+            logger.error(f"[{name}] Exited cleanly, restarting...")
 
     return wrapped
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Load config
     config = Config.load_config()
 
@@ -44,14 +46,14 @@ if __name__ == '__main__':
     logger.remove()
     logger.add(
         sys.stderr,
-        format='<level>{time:YYYY-MM-DD HH:mm:ss} | {level: <5} | {message}</level>',
+        format="<level>{time:YYYY-MM-DD HH:mm:ss} | {level: <5} | {message}</level>",
         colorize=True,
         level=config.log_level,
     )
 
     # Create sub-directories if they don't exist
     for directory in df.DIRECTORY_PATHS:
-        os.makedirs(name=f'{df.CLIENT_DIR}/{directory}/', exist_ok=True)
+        os.makedirs(name=f"{df.CLIENT_DIR}/{directory}/", exist_ok=True)
 
     # Configure sub-processes
     client = ClientConnector(config=config.client)
@@ -66,39 +68,39 @@ if __name__ == '__main__':
     # create threads
     loop.run_in_executor(
         executor,
-        auto_restart_service(client.transmit_service, 'client-transmitter'),
+        auto_restart_service(client.transmit_service, "client-transmitter"),
     )
     loop.run_in_executor(
-        executor, auto_restart_service(client.listener_service, 'client-listener')
-    )
-    loop.run_in_executor(
-        executor,
-        auto_restart_service(server.transmit_service, 'server-transmitter'),
-    )
-    loop.run_in_executor(
-        executor, auto_restart_service(server.listener_service, 'server-listener')
-    )
-    loop.run_in_executor(
-        executor, auto_restart_service(packet.assembler_service, 'packet-assembler')
+        executor, auto_restart_service(client.listener_service, "client-listener")
     )
     loop.run_in_executor(
         executor,
-        auto_restart_service(packet.disassembler_service, 'packet-disassembler'),
+        auto_restart_service(server.transmit_service, "server-transmitter"),
+    )
+    loop.run_in_executor(
+        executor, auto_restart_service(server.listener_service, "server-listener")
+    )
+    loop.run_in_executor(
+        executor, auto_restart_service(packet.assembler_service, "packet-assembler")
+    )
+    loop.run_in_executor(
+        executor,
+        auto_restart_service(packet.disassembler_service, "packet-disassembler"),
     )
 
     # run loop until stopped
     try:
         loop.run_forever()
     finally:
-        logger.info('Shutting down Tunnel over Anything')
+        logger.info("Shutting down Tunnel over Anything")
         deleted_file_count = 0
         for directory in df.DIRECTORY_PATHS:
-            for file in os.listdir(path=f'{df.CLIENT_DIR}/{directory}'):
-                file_path = f'{df.CLIENT_DIR}/{directory}/{file}'
-                if not os.path.isfile(file_path) or not file_path.endswith('.bin'):
+            for file in os.listdir(path=f"{df.CLIENT_DIR}/{directory}"):
+                file_path = f"{df.CLIENT_DIR}/{directory}/{file}"
+                if not os.path.isfile(file_path) or not file_path.endswith(".bin"):
                     continue
-                logger.debug(f'Deleting file {file_path}')
+                logger.debug(f"Deleting file {file_path}")
                 os.remove(path=file_path)
                 deleted_file_count += 1
         if deleted_file_count > 0:
-            logger.info(f'Deleted {deleted_file_count} binary files')
+            logger.info(f"Deleted {deleted_file_count} binary files")
