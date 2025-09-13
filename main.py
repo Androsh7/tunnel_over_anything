@@ -46,7 +46,11 @@ def main():
         description="Tunnel over Anything client application"
     )
     parser.add_argument(
-        "--config", "-c", help="Path to the config file", default=f"{df.CLIENT_DIR}/config.toml", required=False
+        "--config",
+        "-c",
+        help="Path to the config file",
+        default=f"{df.CLIENT_DIR}/config.toml",
+        required=False,
     )
     args = parser.parse_args()
 
@@ -115,6 +119,7 @@ def main():
                 deleted_file_count += 1
         if deleted_file_count > 0:
             logger.info(f"Deleted {deleted_file_count} binary files")
+
 
 if __name__ == "__main__":
     main()

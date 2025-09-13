@@ -134,9 +134,7 @@ class Config:
         Args:
             file_name: the name of the toml config file
         """
-        with open(
-            file=file_path, mode="r", encoding="utf-8"
-        ) as file:
+        with open(file=file_path, mode="r", encoding="utf-8") as file:
             config_dict = toml.load(file)
 
             mode = config_dict["mode"].lower()
