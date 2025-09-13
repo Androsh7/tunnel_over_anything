@@ -1,5 +1,5 @@
 # Tunnel over Anything
-![#](docs/Tunnel_Over_Anything_w_Background.png)
+![ToA icon](docs/tunnel_over_anything.png)
 > [!CAUTION]
 > THIS TOOL IS FOR AUTHORIZED TESTING AND RESEARCH PURPOSES ONLY<br>
 > UNAUTHORIZED USE OF THIS TOOL MAY CONSTITUTE A CRIME
@@ -20,7 +20,7 @@ Obfuscation methods:<br>
 
 To transmit obfuscated data over a network, two instances of Tunnel over Anything (ToA) are required. At least one node must operate in server mode with a publicly accessible port to accept incoming connections. The other node runs in client mode, initiating the connection to the server.
 
-![Setup diagram](docs/tunnel_Over_anything.drawio.svg)
+![Setup diagram](docs/tunnel_over_anything.svg)
 
 ### Server Mode:
 
