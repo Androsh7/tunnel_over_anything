@@ -1,4 +1,5 @@
 # Tunnel over Anything
+![#](docs/Tunnel_Over_Anything_w_Background.png)
 > [!CAUTION]
 > THIS TOOL IS FOR AUTHORIZED TESTING AND RESEARCH PURPOSES ONLY<br>
 > UNAUTHORIZED USE OF THIS TOOL MAY CONSTITUTE A CRIME
@@ -19,7 +20,7 @@ Obfuscation methods:<br>
 
 To transmit obfuscated data over a network, two instances of Tunnel over Anything (ToA) are required. At least one node must operate in server mode with a publicly accessible port to accept incoming connections. The other node runs in client mode, initiating the connection to the server.
 
-![Setup diagram](docs/Tunnel_Over_Anything.drawio.svg)
+![Setup diagram](docs/tunnel_Over_anything.drawio.svg)
 
 ### Server Mode:
 
@@ -27,7 +28,7 @@ In server mode, ToA expects to receive encoded packets on it's listening port, d
 
 Generally the server connector will be public facing, whereas the client connector will point to a local service.
 
-[Example client config](examples/client_side_config.toml)
+[Example client config](docs/client_side_config.toml)
 ```
                    [ ------------- Tunnel over Anything --------------]
 encoded packets -> server connector -> disassembler -> client connector -> raw data
@@ -39,7 +40,7 @@ In client mode, ToA expects to receive raw packets on it's listening port, assem
 
 Generally the server connector will be internally facing, whereas the client connector will point to a public ip.
 
-[Example server config](examples/server_side_config.toml)
+[Example server config](docs/server_side_config.toml)
 ```
                    [ ------------- Tunnel over Anything --------------]
        raw data -> server connector ->   assembler  -> client connector -> encoded data
@@ -56,7 +57,7 @@ docker run \
     tunnel_over_anything:latest
 ```
 
-### Run via python (recommended)
+### Run via python (stable)
 #### Run on linux
 ```
 python -m venv .venv
@@ -70,4 +71,18 @@ python -m venv .venv
 .\.venv\Scripts\activate.ps1
 pip install .
 python main.py
+```
+
+### Compile and run via Nuitka (Recommended)
+
+Nuitka is a python compiler that simplifies the deployment process of ToA and substantially increases performance
+
+```
+pip install Nuitka
+
+# Windows install
+python -m nuitka main.py --onefile --standalone --windows-icon-from-ico=docs/tunnel_over_anything.ico
+
+# Linux install
+python -m nuitka main.py --onefile --standalone --linux-icon=docs/tunnel_over_anything.png
 ```
