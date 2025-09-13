@@ -4,6 +4,14 @@ __pycache__/
 *.egg-info/
 build/
 
+# Nuitka
+*.build/
+*.dist/
+*.onefile-build/
+*.exe
+*.cmd
+*.bin
+
 # VSCode
 .vscode/
 
