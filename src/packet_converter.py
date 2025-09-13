@@ -72,7 +72,7 @@ class PacketConverter:
             os.remove(path)
         except PermissionError:
             logger.error(
-                f'[{self.connector_type}] Permission denied when attempting to delete {path}'
+                f'[{self}] Permission denied when attempting to delete {path}'
             )
 
     def encode_data(self, data: bytes) -> bytes:
