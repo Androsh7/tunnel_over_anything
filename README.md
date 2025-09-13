@@ -63,14 +63,14 @@ docker run \
 python -m venv .venv
 source .venv/bin/activate
 pip install .
-python main.py
+python main.py --config=<CONFIG_PATH>
 ```
 #### Run on Windows
 ```
 python -m venv .venv
 .\.venv\Scripts\activate.ps1
 pip install .
-python main.py
+python main.py --config=<CONFIG_PATH>
 ```
 
 ### Compile and Run via Nuitka (Recommended)
@@ -85,6 +85,7 @@ pip install Nuitka
 python -m nuitka main.py --onefile --standalone --windows-icon-from-ico=docs/tunnel_over_anything.ico --output-filename=tunnel_over_anything.exe
 
 # Linux install
+sudo apt-get install patchelf # Required to build executable
 python -m nuitka main.py --onefile --standalone --linux-icon=docs/tunnel_over_anything.ico --output-filename=tunnel_over_anything.bin
 ```
 
@@ -92,9 +93,9 @@ python -m nuitka main.py --onefile --standalone --linux-icon=docs/tunnel_over_an
 
 ```
 # Windows
-./tunnel_over_anything.exe
+./tunnel_over_anything.exe --config=<CONFIG_PATH>
 
 # Linux
-./tunnel_over_anything.bin
+./tunnel_over_anything.bin --config=<CONFIG_PATH>
 ```
 Note: Nuitka-compiled executables may trigger antivirus/Windows Defender alerts, and will likely need to be whitelisted.

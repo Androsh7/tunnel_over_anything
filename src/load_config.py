@@ -128,14 +128,14 @@ class Config:
     )
 
     @classmethod
-    def load_config(cls, file_name: str = "config.toml"):
+    def load_config(cls, file_path: str = f"{df.CLIENT_DIR}/config.toml"):
         """Creates a Config object from a dictionary
 
         Args:
             file_name: the name of the toml config file
         """
         with open(
-            file=f"{df.CLIENT_DIR}/{file_name}", mode="r", encoding="utf-8"
+            file=file_path, mode="r", encoding="utf-8"
         ) as file:
             config_dict = toml.load(file)
 
