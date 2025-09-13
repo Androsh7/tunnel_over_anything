@@ -35,7 +35,7 @@ class PacketConverter:
         Returns:
             List of the sorted raw packet filenames from oldest to newest
         """
-        packet_list = os.listdir(path=f'{df.CLIENT_DIR}/{path}')
+        packet_list = os.listdir(path=f"{df.CLIENT_DIR}/{path}")
         packet_list.sort()  # sort from oldest to newest
 
         return packet_list
@@ -49,7 +49,7 @@ class PacketConverter:
         Returns:
             The contents of the binary files as a byte string
         """
-        with open(file=path, mode='rb') as file:
+        with open(file=path, mode="rb") as file:
             return file.read()
 
     def write_packet(self, path: str, packet: bytes):
@@ -59,7 +59,7 @@ class PacketConverter:
             path: Path to the desired file
             packet: The byte string to write
         """
-        with open(file=path, mode='wb') as file:
+        with open(file=path, mode="wb") as file:
             file.write(packet)
 
     def delete_packet(self, path: str):
@@ -68,7 +68,10 @@ class PacketConverter:
         Args:
             Path to the desired file
         """
-        os.remove(path=path)
+        try:
+            os.remove(path)
+        except PermissionError:
+            logger.error(f"[{self}] Permission denied when attempting to delete {path}")
 
     def encode_data(self, data: bytes) -> bytes:
         """Encodes data to the protocol specified in the PacketConverter config
@@ -80,15 +83,15 @@ class PacketConverter:
             encoded byte string
         """
         match (self.encoding):
-            case 'base64':
+            case "base64":
                 return b64encode(data)
-            case 'base85':
-                return bytes(parse.quote_from_bytes(b85encode(data)), encoding='ascii')
-            case 'none':
+            case "base85":
+                return bytes(parse.quote_from_bytes(b85encode(data)), encoding="ascii")
+            case "none":
                 return data
             case _:
                 raise KeyError(
-                    f'Invalid or unsupported encoding method {self.encoding}'
+                    f"Invalid or unsupported encoding method {self.encoding}"
                 )
 
     def decode_data(self, data: bytes) -> bytes:
@@ -101,15 +104,15 @@ class PacketConverter:
             Decoded byte string
         """
         match (self.encoding):
-            case 'base64':
+            case "base64":
                 return b64decode(data)
-            case 'base85':
+            case "base85":
                 return b85decode(parse.unquote_to_bytes(data))
-            case 'none':
+            case "none":
                 return data
             case _:
                 raise KeyError(
-                    f'Invalid or unsupported encoding method {self.encoding}'
+                    f"Invalid or unsupported encoding method {self.encoding}"
                 )
 
     def assemble_packet(self, data: bytes) -> bytes:
@@ -127,12 +130,12 @@ class PacketConverter:
         """
         encoded_data = self.encode_data(data)
         match self.packet_type:
-            case 'dns':
+            case "dns":
                 return assemble_dns_packet(encoded_data)
-            case 'none':
+            case "none":
                 return encoded_data
             case _:
-                raise KeyError(f'[assembler] Invalid packet type {self.packet_type}')
+                raise KeyError(f"[assembler] Invalid packet type {self.packet_type}")
 
     def disassemble_packet(self, packet: bytes) -> Optional[bytes]:
         """Takes an assembled packet and returns the hidden data
@@ -150,12 +153,12 @@ class PacketConverter:
         """
         encoded_data = None
         match self.packet_type:
-            case 'dns':
+            case "dns":
                 encoded_data = disassemble_dns_packet(packet_bytes=packet)
-            case 'none':
+            case "none":
                 encoded_data = packet
             case _:
-                raise KeyError(f'[disassembler] Invalid packet type {self.packet_type}')
+                raise KeyError(f"[disassembler] Invalid packet type {self.packet_type}")
         if encoded_data is None:
             return encoded_data
 
@@ -166,33 +169,33 @@ class PacketConverter:
         builds them into assembled DNS packets in assembled_packets
         """
         logger.info(
-            f'[assembler] Started packet assembler '
-            f'({self.assemble_source} -> {self.assemble_destination})'
+            f"[assembler] Started packet assembler "
+            f"({self.assemble_source} -> {self.assemble_destination})"
         )
         while True:
             packet_list = self.grab_captures(path=self.assemble_source)
             if len(packet_list) == 0:
                 continue
             logger.debug(
-                f'[assembler] Processing {len(packet_list)} '
-                f'packet{'s' if len(packet_list) > 1 else ''} in '
-                f'{self.assemble_source} {packet_list}'
+                f"[assembler] Processing {len(packet_list)} "
+                f"packet{'s' if len(packet_list) > 1 else ''} in "
+                f"{self.assemble_source} {packet_list}"
             )
 
             for packet in packet_list:
-                packet_source_path = f'{self.assemble_source}/{packet}'
-                packet_destination_path = f'{self.assemble_destination}/{packet}'
+                packet_source_path = f"{self.assemble_source}/{packet}"
+                packet_destination_path = f"{self.assemble_destination}/{packet}"
                 packet_bytes = self.read_packet(
-                    path=f'{df.CLIENT_DIR}/{packet_source_path}'
+                    path=f"{df.CLIENT_DIR}/{packet_source_path}"
                 )
                 logger.debug(
-                    f'[assembler] {packet_source_path} -> {packet_destination_path}'
+                    f"[assembler] {packet_source_path} -> {packet_destination_path}"
                 )
 
                 assembled_packet = self.assemble_packet(data=packet_bytes)
 
                 self.write_packet(
-                    path=f'{df.CLIENT_DIR}/{packet_destination_path}',
+                    path=f"{df.CLIENT_DIR}/{packet_destination_path}",
                     packet=assembled_packet,
                 )
                 self.delete_packet(packet_source_path)
@@ -202,27 +205,27 @@ class PacketConverter:
         inbound/raw_capture and dissects the data into inbound/disassembled_packets
         """
         logger.info(
-            f'[disassembler] Started packet disassembler '
-            f'({self.disassemble_source} -> {self.disassemble_destination})'
+            f"[disassembler] Started packet disassembler "
+            f"({self.disassemble_source} -> {self.disassemble_destination})"
         )
         while True:
             packet_list = self.grab_captures(path=self.disassemble_source)
             if len(packet_list) == 0:
                 continue
             logger.debug(
-                f'[disassembler] Processing {len(packet_list)} '
-                f'packet{'s' if len(packet_list) > 1 else ''} in '
-                f'{self.disassemble_source} {packet_list}'
+                f"[disassembler] Processing {len(packet_list)} "
+                f"packet{'s' if len(packet_list) > 1 else ''} in "
+                f"{self.disassemble_source} {packet_list}"
             )
 
             for packet in packet_list:
-                packet_source_path = f'{self.disassemble_source}/{packet}'
-                packet_destination_path = f'{self.disassemble_destination}/{packet}'
+                packet_source_path = f"{self.disassemble_source}/{packet}"
+                packet_destination_path = f"{self.disassemble_destination}/{packet}"
                 packet_bytes = self.read_packet(
-                    path=f'{df.CLIENT_DIR}/{packet_source_path}'
+                    path=f"{df.CLIENT_DIR}/{packet_source_path}"
                 )
                 logger.debug(
-                    f'[disassembler] {packet_source_path} -> {packet_destination_path}'
+                    f"[disassembler] {packet_source_path} -> {packet_destination_path}"
                 )
 
                 if (
@@ -232,7 +235,7 @@ class PacketConverter:
                     continue
 
                 self.write_packet(
-                    path=f'{df.CLIENT_DIR}/{packet_destination_path}',
+                    path=f"{df.CLIENT_DIR}/{packet_destination_path}",
                     packet=disassembled_packet,
                 )
                 self.delete_packet(packet_source_path)
