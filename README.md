@@ -24,9 +24,9 @@ To transmit obfuscated data over a network, two instances of Tunnel over Anythin
 
 ### Server Mode:
 
-In server mode, ToA expects to receive encoded packets on it's listening port, disassemble the data and transmit it via the client connector.
+In server mode, ToA expects to receive encoded packets on its listening port, disassemble the data and transmit it via the client connector.
 
-Generally the server connector will be public facing, whereas the client connector will point to a local service.
+Generally the server connector will be public-facing, whereas the client connector will point to a local service.
 
 [Example client config](docs/client_side_config.toml)
 ```
@@ -38,7 +38,7 @@ encoded packets <- server connector <-   assembler  <- client connector <- raw d
 
 In client mode, ToA expects to receive raw packets on it's listening port, assemble the data and transmit it via the client connector.
 
-Generally the server connector will be internally facing, whereas the client connector will point to a public ip.
+Generally the server connector will be internally facing, whereas the client connector will point to a public IP.
 
 [Example server config](docs/server_side_config.toml)
 ```
@@ -47,7 +47,7 @@ Generally the server connector will be internally facing, whereas the client con
        raw data <- server connector <- disassembler <- client connector <- encoded data
 ```
 
-### Run via docker (experimental)
+### Run via Docker (experimental)
 ```
 docker run \
     -v path/to/config.toml:/tunnel_over_anything/config.toml \
@@ -57,15 +57,15 @@ docker run \
     tunnel_over_anything:latest
 ```
 
-### Run via python (stable)
-#### Run on linux
+### Run via Python (stable)
+#### Run on Linux
 ```
 python -m venv .venv
 source .venv/bin/activate
 pip install .
 python main.py
 ```
-#### Run on windows
+#### Run on Windows
 ```
 python -m venv .venv
 .\.venv\Scripts\activate.ps1
@@ -73,10 +73,11 @@ pip install .
 python main.py
 ```
 
-### Compile and run via Nuitka (Recommended)
+### Compile and Run via Nuitka (Recommended)
 
-Nuitka is a python compiler that simplifies the deployment process of ToA and substantially increases performance
+Nuitka is a python compiler that simplifies deployment of ToA and substantially improves performance
 
+#### Build Executable
 ```
 pip install Nuitka
 
@@ -84,5 +85,16 @@ pip install Nuitka
 python -m nuitka main.py --onefile --standalone --windows-icon-from-ico=docs/tunnel_over_anything.ico --output-filename=tunnel_over_anything.exe
 
 # Linux install
-python -m nuitka main.py --onefile --standalone --linux-icon=docs/tunnel_over_anything.png --output-filename=tunnel_over_anything.bin
+python -m nuitka main.py --onefile --standalone --linux-icon=docs/tunnel_over_anything.ico --output-filename=tunnel_over_anything.bin
 ```
+
+#### Run Executable
+
+```
+# Windows
+./tunnel_over_anything.exe
+
+# Linux
+./tunnel_over_anything.bin
+```
+Note: Nuitka-compiled executables may trigger antivirus/Windows Defender alerts, and will likely need to be whitelisted.
