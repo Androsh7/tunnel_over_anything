@@ -81,8 +81,8 @@ Nuitka is a python compiler that simplifies the deployment process of ToA and su
 pip install Nuitka
 
 # Windows install
-python -m nuitka main.py --onefile --standalone --windows-icon-from-ico=docs/tunnel_over_anything.ico
+python -m nuitka main.py --onefile --standalone --windows-icon-from-ico=docs/tunnel_over_anything.ico --output-filename=tunnel_over_anything.exe
 
 # Linux install
-python -m nuitka main.py --onefile --standalone --linux-icon=docs/tunnel_over_anything.png
+python -m nuitka main.py --onefile --standalone --linux-icon=docs/tunnel_over_anything.png --output-filename=tunnel_over_anything.bin
 ```
