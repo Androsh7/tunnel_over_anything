@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="tunnel_over_anything",
-    version="0.1.0",
+    version="0.1.1",
     description="Tunneling software that disguises TCP/UDP traffic using DNS, HTTP, and other protocols",
     author="androsh7",
     install_requires=[
