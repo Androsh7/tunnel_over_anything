@@ -8,8 +8,9 @@ CLIENT_DIR = "/".join(
     os.path.dirname(os.path.abspath(__file__)).replace("\\", "/").split("/")[:-1]
 )
 MAX_RECV_BUFFER = 65535
+CONNECTOR_TYPES = ["server", "client"]
 PROTOCOLS = ["dns", "none"]
-ENCODING = ["base64", "base85", "none"]
+ENCODING_TYPES = ["base64", "base85", "none"]
 INBOUND_RAW_PATH = "inbound/raw_capture"
 INBOUND_PROCESSED_PATH = "inbound/disassembled_packets"
 OUTBOUND_RAW_PATH = "outbound/raw_capture"

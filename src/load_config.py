@@ -85,7 +85,7 @@ class PacketConfig:
     )
     encoding: str = field(
         validator=validators.and_(
-            validators.instance_of(str), validators.in_(df.ENCODING)
+            validators.instance_of(str), validators.in_(df.ENCODING_TYPES)
         )
     )
     mode: Literal["server", "client"] = field(

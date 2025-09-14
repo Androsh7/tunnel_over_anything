@@ -13,6 +13,7 @@ from loguru import logger
 import src.default as df
 from src.base_connector import BaseConnector
 from src.load_config import ClientConfig
+from src.packet_queue import PacketQueue
 
 
 @define
@@ -20,12 +21,17 @@ class ClientConnector(BaseConnector):
     """Defines the ClientConnector class for connecting to a ServerConnector object
     or another server I.E: OpenVPN server"""
 
-    def __init__(self, config: ClientConfig):
+    def __init__(
+        self,
+        config: ClientConfig,
+        to_converter: PacketQueue,
+        from_converter: PacketQueue,
+    ):
         self.connector_type = "client"
         self.endpoint = config.endpoint
         self.port = config.port
-        self.tx_path = config.tx_path
-        self.recv_path = config.recv_path
+        self.tx_path = from_converter
+        self.recv_path = to_converter
         self.tx_address = None
 
         # Create the socket
@@ -61,23 +67,15 @@ class ClientConnector(BaseConnector):
             f"[{self.connector_type}] Started transmitter to {self.endpoint}:{self.port}"
         )
         while True:
-            # grab a list of all packets and sort them oldest to newest
-            packet_list = os.listdir(path=f"{df.CLIENT_DIR}/{self.tx_path}/")
-            packet_list.sort()
-            for packet in packet_list:
-                packet_path = f"{df.CLIENT_DIR}/{self.tx_path}/{packet}"
-                with open(file=packet_path, mode="rb") as file:
-                    packet_bytes = file.read()
+            # wait for packets to be added to the tx_path queue
+            if self.tx_path.is_empty():
+                continue
 
-                logger.info(
-                    f"[{self.connector_type}] Transmitting {len(packet_bytes)} byte packet "
-                    f"{self.tx_path}/{packet} to {self.endpoint}:{self.port}"
-                )
-                logger.trace(f"[{self.connector_type}] {packet_bytes}")
-                self.send(data=packet_bytes)
-                try:
-                    os.remove(packet_path)
-                except PermissionError:
-                    logger.error(
-                        f"[{self.connector_type}] Permission denied when attempting to delete {packet_path}"
-                    )
+            # grab a list of all packets and sort them oldest to newest
+            packet_bytes = self.tx_path.dequeue()
+
+            logger.debug(
+                f"[{self.connector_type}] Transmitting {len(packet_bytes)} byte packet "
+                f"{self.tx_path} to {self.endpoint}:{self.port}"
+            )
+            self.send(data=packet_bytes)

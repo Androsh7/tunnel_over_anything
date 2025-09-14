@@ -10,15 +10,16 @@ from loguru import logger
 
 # Project libraries
 import src.default as df
+from src.packet_queue import PacketQueue
 
 
 @define
 class BaseConnector:
     """A base class for the client and server connector"""
 
-    connector_type: Literal["server", "client"] = field(
+    connector_type: Literal[(df.CONNECTOR_TYPES)] = field(
         validator=validators.and_(
-            validators.instance_of(str), validators.in_(("server", "client"))
+            validators.instance_of(str), validators.in_(df.CONNECTOR_TYPES)
         )
     )
     endpoint: str = field(validator=validators.instance_of(str))
@@ -27,8 +28,8 @@ class BaseConnector:
             validators.instance_of(int), validators.ge(1), validators.le(65535)
         )
     )
-    recv_path: str = field(validator=validators.instance_of(str))
-    tx_path: str = field(validator=validators.instance_of(str))
+    recv_path: PacketQueue = field(validator=validators.instance_of(PacketQueue))
+    tx_path: PacketQueue = field(validator=validators.instance_of(PacketQueue))
     sock: socket.socket = field(validator=validators.instance_of(socket.socket))
     tx_address: tuple[str, int] = field()
 
@@ -73,11 +74,8 @@ class BaseConnector:
                     )
             self.tx_address = addr
             date_string = df.get_datetime()
-            logger.info(
+            logger.debug(
                 f"[{self.connector_type}] Received {len(packet_bytes)} byte packet from "
                 f"{addr[0]}:{addr[1]} writing binary to {self.recv_path}/{date_string}.bin"
             )
-            with open(
-                file=f"{df.CLIENT_DIR}/{self.recv_path}/{date_string}.bin", mode="wb"
-            ) as file:
-                file.write(packet_bytes)
+            self.recv_path.enqueue(packet_bytes)

@@ -17,6 +17,7 @@ import src.default as df
 from src.client import ClientConnector
 from src.load_config import Config
 from src.packet_converter import PacketConverter
+from src.packet_queue import PacketQueue
 from src.server import ServerConnector
 
 
@@ -66,14 +67,30 @@ def main():
         level=config.log_level,
     )
 
-    # Create sub-directories if they don't exist
-    for directory in df.DIRECTORY_PATHS:
-        os.makedirs(name=f"{df.CLIENT_DIR}/{directory}/", exist_ok=True)
+    # Create queues
+    client_to_converter = PacketQueue(queue_name="client_to_converter")
+    converter_to_client = PacketQueue(queue_name="converter_to_client")
+    server_to_converter = PacketQueue(queue_name="server_to_converter")
+    converter_to_server = PacketQueue(queue_name="converter_to_server")
 
     # Configure sub-processes
-    client = ClientConnector(config=config.client)
-    server = ServerConnector(config=config.server)
-    packet = PacketConverter(config=config.packet)
+    client = ClientConnector(
+        config=config.client,
+        to_converter=client_to_converter,
+        from_converter=converter_to_client,
+    )
+    server = ServerConnector(
+        config=config.server,
+        to_converter=server_to_converter,
+        from_converter=converter_to_server,
+    )
+    packet = PacketConverter(
+        config=config.packet,
+        to_client=converter_to_client,
+        from_client=client_to_converter,
+        to_server=converter_to_server,
+        from_server=server_to_converter,
+    )
 
     # Start process workers
     executor = ThreadPoolExecutor(max_workers=6)
@@ -83,24 +100,24 @@ def main():
     # create threads
     loop.run_in_executor(
         executor,
-        auto_restart_service(client.transmit_service, "client-transmitter"),
+        auto_restart_service(client.transmit_service, name="client-transmitter"),
     )
     loop.run_in_executor(
-        executor, auto_restart_service(client.listener_service, "client-listener")
-    )
-    loop.run_in_executor(
-        executor,
-        auto_restart_service(server.transmit_service, "server-transmitter"),
-    )
-    loop.run_in_executor(
-        executor, auto_restart_service(server.listener_service, "server-listener")
-    )
-    loop.run_in_executor(
-        executor, auto_restart_service(packet.assembler_service, "packet-assembler")
+        executor, auto_restart_service(client.listener_service, name="client-listener")
     )
     loop.run_in_executor(
         executor,
-        auto_restart_service(packet.disassembler_service, "packet-disassembler"),
+        auto_restart_service(server.transmit_service, name="server-transmitter"),
+    )
+    loop.run_in_executor(
+        executor, auto_restart_service(server.listener_service, name="server-listener")
+    )
+    loop.run_in_executor(
+        executor, auto_restart_service(packet.assembler_service, name="packet-assembler")
+    )
+    loop.run_in_executor(
+        executor,
+        auto_restart_service(packet.disassembler_service, name="packet-disassembler"),
     )
 
     # run loop until stopped
