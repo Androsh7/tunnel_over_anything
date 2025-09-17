@@ -19,8 +19,6 @@ class ConnectorConfig:
     port: int = field(
         converter=int, validator=validators.and_(validators.ge(1), validators.le(65535))
     )
-    recv_path: str = field(validator=validators.instance_of(str))
-    tx_path: str = field(validator=validators.instance_of(str))
 
 
 @define
@@ -28,24 +26,16 @@ class ClientConfig(ConnectorConfig):
     """Defines the ClientConfig class for configuring ClientConnector objects"""
 
     @classmethod
-    def from_dict(cls, data: dict, mode: Literal["server", "client"]):
+    def from_dict(cls, data: dict):
         """Creates a ClientConfig object from a dictionary
 
         Args:
             data: the dictionary with the client config
         """
-        if mode == "client":
-            recv_path = df.INBOUND_RAW_PATH
-            tx_path = df.OUTBOUND_PROCESSED_PATH
-        else:
-            recv_path = df.OUTBOUND_RAW_PATH
-            tx_path = df.INBOUND_PROCESSED_PATH
 
         return cls(
             endpoint=data["endpoint"],
             port=data["port"],
-            recv_path=recv_path,
-            tx_path=tx_path,
         )
 
 
@@ -54,23 +44,15 @@ class ServerConfig(ConnectorConfig):
     """Defines the ServerConfig class for configuring ServerConnector objects"""
 
     @classmethod
-    def from_dict(cls, data: dict, mode: Literal["server", "client"]):
+    def from_dict(cls, data: dict):
         """Creates a ServerConfig object from a dictionary
 
         Args:
             data: the dictionary with the server config
         """
-        if mode == "client":
-            recv_path = df.OUTBOUND_RAW_PATH
-            tx_path = df.INBOUND_PROCESSED_PATH
-        else:
-            recv_path = df.INBOUND_RAW_PATH
-            tx_path = df.OUTBOUND_PROCESSED_PATH
         return cls(
             endpoint=data["endpoint"],
             port=data["port"],
-            recv_path=recv_path,
-            tx_path=tx_path,
         )
 
 
@@ -141,7 +123,7 @@ class Config:
         return cls(
             log_level=config_dict["log_level"].upper(),
             mode=mode,
-            client=ClientConfig.from_dict(config_dict["client"], mode=mode),
-            server=ServerConfig.from_dict(config_dict["server"], mode=mode),
+            client=ClientConfig.from_dict(config_dict["client"]),
+            server=ServerConfig.from_dict(config_dict["server"]),
             packet=PacketConfig.from_dict(config_dict["packet"], mode=mode),
         )
