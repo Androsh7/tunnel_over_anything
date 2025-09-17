@@ -67,6 +67,12 @@ def main():
         level=config.log_level,
     )
 
+    # Check if the Python GIL is enabled
+    if sys._is_gil_enabled():
+        logger.warning("Python GIL is enabled, performance may be degraded")
+    else:
+        logger.info("Python GIL is disabled, optimal performance")
+
     # Create queues
     client_to_converter = PacketQueue(queue_name="client_to_converter")
     converter_to_client = PacketQueue(queue_name="converter_to_client")
