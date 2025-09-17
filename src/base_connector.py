@@ -73,9 +73,8 @@ class BaseConnector:
                         f"is set to {addr[0]}:{addr[1]}"
                     )
             self.tx_address = addr
-            date_string = df.get_datetime()
             logger.debug(
                 f"[{self.connector_type}] Received {len(packet_bytes)} byte packet from "
-                f"{addr[0]}:{addr[1]} writing binary to {self.recv_path}/{date_string}.bin"
+                f"{addr[0]}:{addr[1]} writing binary to {self.recv_path}"
             )
             self.recv_path.enqueue(packet_bytes)
