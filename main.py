@@ -125,17 +125,6 @@ def main():
         loop.run_forever()
     finally:
         logger.info("Shutting down Tunnel over Anything")
-        deleted_file_count = 0
-        for directory in df.DIRECTORY_PATHS:
-            for file in os.listdir(path=f"{df.CLIENT_DIR}/{directory}"):
-                file_path = f"{df.CLIENT_DIR}/{directory}/{file}"
-                if not os.path.isfile(file_path) or not file_path.endswith(".bin"):
-                    continue
-                logger.debug(f"Deleting file {file_path}")
-                os.remove(path=file_path)
-                deleted_file_count += 1
-        if deleted_file_count > 0:
-            logger.info(f"Deleted {deleted_file_count} binary files")
 
 
 if __name__ == "__main__":
