@@ -7,10 +7,6 @@ from typing import Literal, Optional
 # Third-party libraries
 from loguru import logger
 
-# Project libraries
-from pypacker.layer567.dns import DNS
-from pypacker.pypacker import DissectException
-
 MAX_RECORD_LENGTH = 60
 
 DNS_METHODS = {
@@ -167,6 +163,58 @@ def build_body(
         ]
     )
 
+def parse_body(packet_bytes: bytes) -> Optional[bytes]:
+    """Parses the body of a DNS packet and extracts data embedded within the DNS queries
+
+    Args:
+        packet_bytes: The raw bytes of the DNS packet to be parsed
+
+    Returns:
+        The extracted data from the DNS queries
+    """
+    # Skip the header (12 bytes)
+    # 2 bytes: ID
+    # 2 bytes: Flags
+    # 2 bytes: Question count
+    # 2 bytes: Answer count
+    # 2 bytes: Authority record count
+    # 2 bytes: Additional record count
+    index = 12
+
+    # A bit hard to explain, but the url is broken into segments separated by periods, I.E:
+    # "example.com" becomes "\x07example\x03com\x00"
+    # Each segment starts with a length byte, followed by the data bytes
+    # The end of the url is marked with a 0 length byte
+    # After the url, there are 4 bytes for the record type and class which we skip
+    # the time_till_skip variable is used to track how many bytes we need to read for the current segment
+    # the last_time_till_skip variable is used to track how many bytes were in the last segment, so we can remove the fictitious domain
+    last_time_till_skip = 0
+    time_till_skip = 0
+
+    data_bytes = b""
+    add_buffer = b""
+
+    while True:
+        if index >= len(packet_bytes):
+            return data_bytes
+        byte = packet_bytes[index]
+        # handle length byte    
+        if time_till_skip == 0:
+            # remove the fictitious domain from the buffer
+            if byte == 0:
+                data_bytes += add_buffer[:(-1 * last_time_till_skip)]
+                add_buffer = b""
+                # skip the record type (2 bytes) + class (2 bytes)
+                index += 4
+            else:
+                time_till_skip = int(byte)
+                last_time_till_skip = time_till_skip
+        # handle data byte
+        else:
+            add_buffer += byte.to_bytes(length=1, byteorder="big")
+            time_till_skip -= 1
+        index += 1
+
 
 def assemble_dns_packet(data: bytes) -> bytes:
     """Assembles a DNS packet from the provided data
@@ -192,12 +240,8 @@ def disassemble_dns_packet(packet_bytes: bytes) -> Optional[bytes]:
         or None if the packet cannot be parsed
     """
     try:
-        dns_packet = DNS(packet_bytes)
+        packet_data = parse_body(packet_bytes)
     except DissectException as e:
         logger.error(f"[disassembler] {e}")
         return None
-    data = b""
-    for query in dns_packet.queries:
-        data_len = int(query.name[0])
-        data += query.name[1 : data_len + 1]
-    return data
+    return packet_data

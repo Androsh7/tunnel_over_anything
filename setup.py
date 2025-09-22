@@ -8,7 +8,6 @@ setup(
     install_requires=[
         "attrs>=25.3.0",
         "loguru>=0.7.3",
-        "pypacker>=5.4",
         "toml>=0.10.2",
     ],
     python_requires=">=3.12.0",
