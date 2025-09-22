@@ -17,7 +17,7 @@ import src.default as df
 from src.client import ClientConnector
 from src.load_config import Config
 from src.packet_converter import PacketConverter
-from src.packet_queue import PacketQueue
+from src.packet_queue import PacketRingBuffer
 from src.server import ServerConnector
 
 
@@ -74,10 +74,26 @@ def main():
         logger.info("Python GIL is disabled, optimal performance")
 
     # Create queues
-    client_to_converter = PacketQueue(queue_name="client_to_converter")
-    converter_to_client = PacketQueue(queue_name="converter_to_client")
-    server_to_converter = PacketQueue(queue_name="server_to_converter")
-    converter_to_server = PacketQueue(queue_name="converter_to_server")
+    client_to_converter = PacketRingBuffer(
+        queue_name="client_to_converter",
+        max_packets=100,
+        max_packet_size=df.MAX_PACKET_SIZE,
+    )
+    converter_to_client = PacketRingBuffer(
+        queue_name="converter_to_client",
+        max_packets=100,
+        max_packet_size=df.MAX_PACKET_SIZE,
+    )
+    server_to_converter = PacketRingBuffer(
+        queue_name="server_to_converter",
+        max_packets=100,
+        max_packet_size=df.MAX_PACKET_SIZE,
+    )
+    converter_to_server = PacketRingBuffer(
+        queue_name="converter_to_server",
+        max_packets=100,
+        max_packet_size=df.MAX_PACKET_SIZE,
+    )
 
     # Configure sub-processes
     client = ClientConnector(
@@ -119,7 +135,8 @@ def main():
         executor, auto_restart_service(server.listener_service, name="server-listener")
     )
     loop.run_in_executor(
-        executor, auto_restart_service(packet.assembler_service, name="packet-assembler")
+        executor,
+        auto_restart_service(packet.assembler_service, name="packet-assembler"),
     )
     loop.run_in_executor(
         executor,

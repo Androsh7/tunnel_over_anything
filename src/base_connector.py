@@ -10,7 +10,7 @@ from loguru import logger
 
 # Project libraries
 import src.default as df
-from src.packet_queue import PacketQueue
+from src.packet_queue import PacketRingBuffer
 
 
 @define
@@ -28,8 +28,12 @@ class BaseConnector:
             validators.instance_of(int), validators.ge(1), validators.le(65535)
         )
     )
-    recv_path: PacketQueue = field(validator=validators.instance_of(PacketQueue))
-    tx_path: PacketQueue = field(validator=validators.instance_of(PacketQueue))
+    recv_path: PacketRingBuffer = field(
+        validator=validators.instance_of(PacketRingBuffer)
+    )
+    tx_path: PacketRingBuffer = field(
+        validator=validators.instance_of(PacketRingBuffer)
+    )
     sock: socket.socket = field(validator=validators.instance_of(socket.socket))
     tx_address: tuple[str, int] = field()
 
@@ -41,7 +45,7 @@ class BaseConnector:
             connection refused message is received
         """
         try:
-            data, address = self.sock.recvfrom(df.MAX_RECV_BUFFER)
+            data, address = self.sock.recvfrom(df.MAX_PACKET_SIZE)
         except ConnectionRefusedError:
             logger.error(f"[{self.connector_type}] Connection refused (Errno 111)")
             return (None, None)
@@ -77,4 +81,4 @@ class BaseConnector:
                 f"[{self.connector_type}] Received {len(packet_bytes)} byte packet from "
                 f"{addr[0]}:{addr[1]} writing binary to {self.recv_path}"
             )
-            self.recv_path.enqueue(packet_bytes)
+            self.recv_path.put(packet_bytes)

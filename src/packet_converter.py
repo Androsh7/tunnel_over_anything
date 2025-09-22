@@ -2,7 +2,7 @@
 
 # Standard libraries
 import os
-from base64 import b64decode, b64encode, b85decode, b85encode
+from base64 import urlsafe_b64decode, urlsafe_b64encode, b85decode, b85encode
 from typing import Optional
 from urllib import parse
 
@@ -14,7 +14,7 @@ from loguru import logger
 import src.default as df
 from src.load_config import PacketConfig
 from src.packet_lib.dns import assemble_dns_packet, disassemble_dns_packet
-from src.packet_queue import PacketQueue
+from src.packet_queue import PacketRingBuffer
 
 
 @define
@@ -37,26 +37,26 @@ class PacketConverter:
             validators.instance_of(str), validators.in_(("client", "server"))
         )
     )
-    assemble_source_queue: PacketQueue = field(
-        validator=validators.instance_of(PacketQueue)
+    assemble_source_queue: PacketRingBuffer = field(
+        validator=validators.instance_of(PacketRingBuffer)
     )
-    assemble_destination_queue: PacketQueue = field(
-        validator=validators.instance_of(PacketQueue)
+    assemble_destination_queue: PacketRingBuffer = field(
+        validator=validators.instance_of(PacketRingBuffer)
     )
-    disassemble_source_queue: PacketQueue = field(
-        validator=validators.instance_of(PacketQueue)
+    disassemble_source_queue: PacketRingBuffer = field(
+        validator=validators.instance_of(PacketRingBuffer)
     )
-    disassemble_destination_queue: PacketQueue = field(
-        validator=validators.instance_of(PacketQueue)
+    disassemble_destination_queue: PacketRingBuffer = field(
+        validator=validators.instance_of(PacketRingBuffer)
     )
 
     def __init__(
         self,
         config: PacketConfig,
-        from_server: PacketQueue,
-        to_server: PacketQueue,
-        from_client: PacketQueue,
-        to_client: PacketQueue,
+        from_server: PacketRingBuffer,
+        to_server: PacketRingBuffer,
+        from_client: PacketRingBuffer,
+        to_client: PacketRingBuffer,
     ):
         self.packet_type = config.protocol
         self.encoding = config.encoding
@@ -86,7 +86,7 @@ class PacketConverter:
         """
         match (self.encoding):
             case "base64":
-                return b64encode(data)
+                return urlsafe_b64encode(data)
             case "base85":
                 return bytes(parse.quote_from_bytes(b85encode(data)), encoding="ascii")
             case "none":
@@ -107,7 +107,7 @@ class PacketConverter:
         """
         match (self.encoding):
             case "base64":
-                return b64decode(data)
+                return urlsafe_b64decode(data)
             case "base85":
                 return b85decode(parse.unquote_to_bytes(data))
             case "none":
@@ -153,18 +153,13 @@ class PacketConverter:
             The data hidden in the packet as a byte string or None
                 if the dissection failed
         """
-        encoded_data = None
         match self.packet_type:
             case "dns":
-                encoded_data = disassemble_dns_packet(packet_bytes=packet)
+                return disassemble_dns_packet(packet_bytes=packet)
             case "none":
-                encoded_data = packet
+                return packet
             case _:
                 raise KeyError(f"[disassembler] Invalid packet type {self.packet_type}")
-        if encoded_data is None:
-            return encoded_data
-
-        return self.decode_data(encoded_data)
 
     def assembler_service(self):
         """Starts the assemble packets service, this takes packets from raw_capture and
@@ -178,9 +173,9 @@ class PacketConverter:
             # skip if the queue is empty
             if self.assemble_source_queue.is_empty():
                 continue
-            packet_bytes = self.assemble_source_queue.dequeue()
+            packet_bytes = self.assemble_source_queue.get()
             assembled_packet = self.assemble_packet(data=packet_bytes)
-            self.assemble_destination_queue.enqueue(assembled_packet)
+            self.assemble_destination_queue.put(assembled_packet)
 
     def disassembler_service(self):
         """Starts the packet disassembly service, this takes assembled DNS packets from
@@ -195,7 +190,7 @@ class PacketConverter:
             if self.disassemble_source_queue.is_empty():
                 continue
 
-            packet_bytes = self.disassemble_source_queue.dequeue()
+            packet_bytes = self.disassemble_source_queue.get()
             if packet_bytes is None:
                 continue
             if (
@@ -203,4 +198,10 @@ class PacketConverter:
             ) is None:
                 continue
 
-            self.disassemble_destination_queue.enqueue(disassembled_packet)
+            try:
+                decoded_packet = self.decode_data(disassembled_packet)
+            except ValueError as e:
+                logger.error(f"[disassembler] {e}")
+                continue
+
+            self.disassemble_destination_queue.put(decoded_packet)

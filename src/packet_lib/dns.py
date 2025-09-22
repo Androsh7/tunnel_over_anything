@@ -163,6 +163,7 @@ def build_body(
         ]
     )
 
+
 def parse_body(packet_bytes: bytes) -> Optional[bytes]:
     """Parses the body of a DNS packet and extracts data embedded within the DNS queries
 
@@ -198,11 +199,11 @@ def parse_body(packet_bytes: bytes) -> Optional[bytes]:
         if index >= len(packet_bytes):
             return data_bytes
         byte = packet_bytes[index]
-        # handle length byte    
+        # handle length byte
         if time_till_skip == 0:
             # remove the fictitious domain from the buffer
             if byte == 0:
-                data_bytes += add_buffer[:(-1 * last_time_till_skip)]
+                data_bytes += add_buffer[: (-1 * last_time_till_skip)]
                 add_buffer = b""
                 # skip the record type (2 bytes) + class (2 bytes)
                 index += 4

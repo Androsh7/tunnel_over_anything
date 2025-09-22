@@ -13,7 +13,7 @@ from loguru import logger
 import src.default as df
 from src.base_connector import BaseConnector
 from src.load_config import ServerConfig
-from src.packet_queue import PacketQueue
+from src.packet_queue import PacketRingBuffer
 
 
 @define
@@ -24,8 +24,8 @@ class ServerConnector(BaseConnector):
     def __init__(
         self,
         config: ServerConfig,
-        to_converter: PacketQueue,
-        from_converter: PacketQueue,
+        to_converter: PacketRingBuffer,
+        from_converter: PacketRingBuffer,
     ):
         self.connector_type = "server"
         self.endpoint = config.endpoint
@@ -73,7 +73,7 @@ class ServerConnector(BaseConnector):
             if self.tx_path.is_empty():
                 continue
 
-            packet_bytes = self.tx_path.dequeue()
+            packet_bytes = self.tx_path.get()
 
             logger.debug(
                 f"[{self.connector_type}] Transmitting {len(packet_bytes)} byte packet "
