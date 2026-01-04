@@ -1,7 +1,6 @@
 """Defines the packet_assembler class for converting outbound packets to the transport packets"""
 
 # Standard libraries
-import os
 from base64 import urlsafe_b64decode, urlsafe_b64encode, b85decode, b85encode
 from typing import Optional
 from urllib import parse

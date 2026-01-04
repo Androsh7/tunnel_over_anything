@@ -65,9 +65,9 @@ class PacketRingBuffer:
 
         len_bytes = self.buffer[self.read_ptr : self.read_ptr + LEN_BYTES_COUNT]
         packet_length = int.from_bytes(len_bytes, byteorder="big")
-        packet_bytes = self.buffer[
+        packet_bytes = memoryview(self.buffer[
             self.read_ptr + LEN_BYTES_COUNT : self.read_ptr + LEN_BYTES_COUNT + packet_length
-        ]
+        ])
         self.read_ptr = self.read_ptr + self.max_packet_size
         if self.read_ptr >= self.max_packets * self.max_packet_size:
             self.read_ptr = 0
@@ -78,7 +78,7 @@ class PacketRingBuffer:
         self.write_ptr = 0
         self.read_ptr = 0
         self.buffer = bytearray(self.max_packets * self.max_packet_size * b"\x00")
-        logger.debug("Cleared ring buffer")
+        logger.debug(f"[{self.queue_name}] Cleared ring buffer")
 
     def __str__(self):
         return self.queue_name
